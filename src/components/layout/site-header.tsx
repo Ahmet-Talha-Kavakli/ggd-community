@@ -38,35 +38,33 @@ export function SiteHeader({ user }: SiteHeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 glass border-b border-ink-200/60">
-      <div className="container-page flex h-16 items-center justify-between gap-4">
-        <div className="flex items-center gap-4 xl:gap-6 min-w-0 flex-1">
-          <Logo />
+      <div className="container-page grid grid-cols-[auto_1fr_auto] xl:grid-cols-[auto_minmax(0,1fr)_auto] h-16 items-center gap-3 xl:gap-4">
+        <Logo />
 
-          <nav className="hidden xl:flex items-center gap-0 2xl:gap-0.5">
-            {NAV.map((item) => {
-              const active =
-                item.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "whitespace-nowrap px-2 2xl:px-2.5 py-2 text-[13px] 2xl:text-sm rounded-lg transition-all duration-200",
-                    active
-                      ? "text-brand-700 bg-brand-50"
-                      : "text-ink-600 hover:text-ink-900 hover:bg-ink-100",
-                  )}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
+        <nav className="hidden xl:flex items-center gap-0 2xl:gap-0.5 min-w-0 overflow-x-auto scrollbar-hide">
+          {NAV.map((item) => {
+            const active =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "whitespace-nowrap px-2 2xl:px-2.5 py-2 text-[13px] 2xl:text-sm rounded-lg transition-all duration-200",
+                  active
+                    ? "text-brand-700 bg-brand-50"
+                    : "text-ink-600 hover:text-ink-900 hover:bg-ink-100",
+                )}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
 
-        <div className="hidden xl:flex items-center gap-2 shrink-0">
+        <div className="hidden xl:flex items-center gap-2 shrink-0 justify-self-end">
           {user ? (
             <UserMenu {...user} />
           ) : (
