@@ -3,13 +3,14 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSignIn } from "@clerk/react/legacy";
+import { useSignIn, useSignUp } from "@clerk/react/legacy";
 import { ArrowRight, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 
 export function SignInForm() {
   const { signIn, isLoaded, setActive } = useSignIn();
+  const { signUp, isLoaded: isSignUpLoaded } = useSignUp();
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextUrl = searchParams.get("next") ?? "/";
@@ -56,9 +57,11 @@ export function SignInForm() {
   }
 
   async function handleGoogle() {
-    if (!isLoaded) return;
+    // signUp flow OAuth için evrensel — yeni kullanıcı yaratır,
+    // mevcut kullanıcı varsa Clerk otomatik signIn'e transfer eder.
+    if (!isSignUpLoaded) return;
     try {
-      await signIn.authenticateWithRedirect({
+      await signUp.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: "/sso-callback",
         redirectUrlComplete: nextUrl,
@@ -76,7 +79,7 @@ export function SignInForm() {
         variant="outline"
         className="w-full mb-3"
         onClick={handleGoogle}
-        disabled={!isLoaded || pending}
+        disabled={!isSignUpLoaded || pending}
       >
         <GoogleIcon />
         Google ile devam et
