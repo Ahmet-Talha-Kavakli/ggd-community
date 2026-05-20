@@ -8,6 +8,10 @@ import { SoundEffects } from "@/components/sound-effects";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { SITE } from "@/config/site";
 
+// Layout auth-aware (getCurrentUser cookie okur), child sayfalar ISR yapsa bile
+// header'ın guncel kalmasi icin force-dynamic.
+export const dynamic = "force-dynamic";
+
 const sora = Sora({
   variable: "--font-sora",
   subsets: ["latin", "latin-ext"],
