@@ -91,6 +91,7 @@ export default async function SikayetlerimPage({
                 title="Henüz şikayetin yok"
                 description="Bir oyuncuyla ilgili sorun yaşadıysan şikayet edebilirsin."
                 cta={{ label: "Şikayet Et", href: "/sikayet" }}
+                image="/goose-typing.png"
               />
             </CardContent>
           </Card>

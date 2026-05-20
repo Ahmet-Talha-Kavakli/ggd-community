@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { AlertTriangle, Calendar, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { TagChips } from "@/components/ui/tag-chips";
+import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { PageHero } from "@/components/layout/page-hero";
 import { CtaCard } from "@/components/layout/cta-card";
 import { createClient } from "@/lib/supabase/server";
@@ -17,13 +17,10 @@ type WarningRow = Warning & {
   issued_by_profile: Pick<Profile, "nickname"> | null;
 };
 
-const severityMap: Record<
-  WarningSeverity,
-  { label: string; variant: "outline" | "warning" | "danger" }
-> = {
-  low: { label: "Hafif", variant: "outline" },
-  medium: { label: "Orta", variant: "warning" },
-  high: { label: "Ağır", variant: "danger" },
+const severityRing: Record<WarningSeverity, string> = {
+  low: "border-l-ink-300",
+  medium: "border-l-warning-500",
+  high: "border-l-danger-500",
 };
 
 export default async function UyarilarPage() {
@@ -68,6 +65,7 @@ export default async function UyarilarPage() {
               <EmptyState
                 title="Tertemiz"
                 description="Şu anda kimsenin aktif uyarısı yok. Lobi keyifli geçiyor."
+                image="/goose-sleeping.png"
               />
             </CardContent>
           </Card>
@@ -75,7 +73,7 @@ export default async function UyarilarPage() {
 
         <div className="grid gap-3">
           {warnings.map((w) => {
-            const sev = severityMap[w.severity];
+            const displayName = w.target_main_name ?? w.target_nickname;
             return (
               <Link
                 key={w.id}
@@ -86,46 +84,37 @@ export default async function UyarilarPage() {
                 )}`}
                 className="group"
               >
-                <Card className="transition-all hover:shadow-card hover:border-brand-200">
-                  <CardContent className="p-5 md:p-6 flex flex-col md:flex-row gap-4 md:items-center">
-                    <div className="grid h-11 w-11 place-items-center rounded-xl bg-warning-50 text-warning-600 shrink-0">
-                      <AlertTriangle className="h-5 w-5" />
-                    </div>
+                <Card
+                  className={`transition-all hover:shadow-card hover:border-brand-200 border-l-4 ${severityRing[w.severity]}`}
+                >
+                  <CardContent className="p-5 md:p-6 flex gap-4 items-center">
+                    <InitialAvatar name={displayName} />
                     <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-baseline gap-2">
-                        <h3 className="font-semibold text-ink-900">
-                          {w.target_main_name ?? w.target_nickname}
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <h3 className="font-semibold text-ink-900 text-base">
+                          {displayName}
                         </h3>
-                        {w.target_main_name &&
-                          w.target_main_name !== w.target_nickname && (
-                            <span className="text-xs text-ink-500">
-                              oyun içi:{" "}
-                              <span className="font-medium text-ink-700">
-                                {w.target_nickname}
-                              </span>
-                            </span>
+                        <span className="text-xs text-ink-500">
+                          {w.target_main_name &&
+                            w.target_main_name !== w.target_nickname && (
+                              <>· {w.target_nickname} </>
+                            )}
+                          {w.ggd_user_id && (
+                            <>
+                              · <span className="font-mono">{w.ggd_user_id}</span>
+                            </>
                           )}
-                        {w.ggd_user_id && (
-                          <code className="text-xs font-mono text-ink-500 bg-ink-100 px-2 py-0.5 rounded-md">
-                            {w.ggd_user_id}
-                          </code>
-                        )}
-                        <Badge variant={sev.variant}>{sev.label}</Badge>
+                        </span>
                       </div>
                       {w.reason_tags && w.reason_tags.length > 0 && (
                         <TagChips slugs={w.reason_tags} className="mt-2" />
                       )}
                       {w.reason && (
-                        <p className="mt-2 text-sm text-ink-600">{w.reason}</p>
+                        <p className="mt-2 text-sm text-ink-700">{w.reason}</p>
                       )}
-                      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-ink-500">
-                        <span className="inline-flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {formatDate(w.created_at)}
-                        </span>
-                        <span>
-                          Uyarıyı veren: {w.issued_by_profile?.nickname ?? "—"}
-                        </span>
+                      <div className="mt-2 text-xs text-ink-500">
+                        {formatDate(w.created_at)} ·{" "}
+                        {w.issued_by_profile?.nickname ?? "—"}
                       </div>
                     </div>
                     <ArrowRight className="h-4 w-4 text-ink-400 group-hover:text-brand-600 group-hover:translate-x-0.5 transition-all shrink-0" />

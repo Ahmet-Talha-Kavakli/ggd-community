@@ -684,31 +684,51 @@ async function DetailView({ ggdUserId }: { ggdUserId: string }) {
               Ban geçmişi ({bans.length})
             </h3>
             <ul className="flex flex-col gap-3">
-              {bans.map((b) => (
-                <li
-                  key={b.id}
-                  className="rounded-xl border border-ink-200 p-4 flex flex-col gap-1.5"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant={b.is_active ? "danger" : "outline"}>
-                      {b.is_active ? "Aktif" : "Eski"}
-                    </Badge>
-                    <Badge variant="default">
-                      {b.duration === "permanent" ? "Kalıcı" : b.duration}
-                    </Badge>
-                    <span className="text-xs text-ink-500 inline-flex items-center gap-1 ml-auto">
-                      <Calendar className="h-3 w-3" />
-                      {formatDate(b.created_at)}
-                    </span>
-                  </div>
-                  {b.reason_tags && b.reason_tags.length > 0 && (
-                    <TagChips slugs={b.reason_tags} />
-                  )}
-                  {b.reason && (
-                    <p className="text-sm text-ink-700">{b.reason}</p>
-                  )}
-                </li>
-              ))}
+              {bans.map((b) => {
+                const isPermanent = b.duration === "permanent";
+                const ring = !b.is_active
+                  ? "border-l-ink-200"
+                  : isPermanent
+                    ? "border-l-danger-500"
+                    : "border-l-warning-500";
+                return (
+                  <li
+                    key={b.id}
+                    className={`rounded-xl border border-ink-200 border-l-4 p-4 flex flex-col gap-1.5 ${ring}`}
+                  >
+                    <div className="flex flex-wrap items-baseline gap-2 text-xs">
+                      <span
+                        className={
+                          b.is_active
+                            ? "font-semibold text-danger-600"
+                            : "font-medium text-ink-500"
+                        }
+                      >
+                        {b.is_active ? "Aktif" : "Eski"}
+                      </span>
+                      <span className="text-ink-400">·</span>
+                      <span
+                        className={
+                          isPermanent
+                            ? "font-medium text-danger-600"
+                            : "font-medium text-warning-600"
+                        }
+                      >
+                        {isPermanent ? "Kalıcı" : b.duration}
+                      </span>
+                      <span className="text-ink-500 ml-auto">
+                        {formatDate(b.created_at)}
+                      </span>
+                    </div>
+                    {b.reason_tags && b.reason_tags.length > 0 && (
+                      <TagChips slugs={b.reason_tags} />
+                    )}
+                    {b.reason && (
+                      <p className="text-sm text-ink-700">{b.reason}</p>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </CardContent>
         </Card>
@@ -721,29 +741,56 @@ async function DetailView({ ggdUserId }: { ggdUserId: string }) {
               Uyarı geçmişi ({warnings.length})
             </h3>
             <ul className="flex flex-col gap-3">
-              {warnings.map((w) => (
-                <li
-                  key={w.id}
-                  className="rounded-xl border border-ink-200 p-4 flex flex-col gap-1.5"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant={w.is_active ? "warning" : "outline"}>
-                      {w.is_active ? "Aktif" : "Eski"}
-                    </Badge>
-                    <Badge variant="default">{w.severity}</Badge>
-                    <span className="text-xs text-ink-500 inline-flex items-center gap-1 ml-auto">
-                      <Calendar className="h-3 w-3" />
-                      {formatDate(w.created_at)}
-                    </span>
-                  </div>
-                  {w.reason_tags && w.reason_tags.length > 0 && (
-                    <TagChips slugs={w.reason_tags} />
-                  )}
-                  {w.reason && (
-                    <p className="text-sm text-ink-700">{w.reason}</p>
-                  )}
-                </li>
-              ))}
+              {warnings.map((w) => {
+                const sevRing = !w.is_active
+                  ? "border-l-ink-200"
+                  : w.severity === "high"
+                    ? "border-l-danger-500"
+                    : w.severity === "medium"
+                      ? "border-l-warning-500"
+                      : "border-l-ink-300";
+                const sevLabel =
+                  w.severity === "high"
+                    ? "Ağır"
+                    : w.severity === "medium"
+                      ? "Orta"
+                      : "Hafif";
+                const sevTone =
+                  w.severity === "high"
+                    ? "text-danger-600"
+                    : w.severity === "medium"
+                      ? "text-warning-600"
+                      : "text-ink-600";
+                return (
+                  <li
+                    key={w.id}
+                    className={`rounded-xl border border-ink-200 border-l-4 p-4 flex flex-col gap-1.5 ${sevRing}`}
+                  >
+                    <div className="flex flex-wrap items-baseline gap-2 text-xs">
+                      <span
+                        className={
+                          w.is_active
+                            ? "font-semibold text-warning-600"
+                            : "font-medium text-ink-500"
+                        }
+                      >
+                        {w.is_active ? "Aktif" : "Eski"}
+                      </span>
+                      <span className="text-ink-400">·</span>
+                      <span className={`font-medium ${sevTone}`}>{sevLabel}</span>
+                      <span className="text-ink-500 ml-auto">
+                        {formatDate(w.created_at)}
+                      </span>
+                    </div>
+                    {w.reason_tags && w.reason_tags.length > 0 && (
+                      <TagChips slugs={w.reason_tags} />
+                    )}
+                    {w.reason && (
+                      <p className="text-sm text-ink-700">{w.reason}</p>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </CardContent>
         </Card>

@@ -37,7 +37,16 @@ export function SignInForm() {
         setError("Giriş tamamlanamadı. Lütfen tekrar dene.");
       }
     } catch (err: unknown) {
-      const e = err as { errors?: { message: string }[]; message?: string };
+      const e = err as {
+        errors?: { message: string; code?: string }[];
+        message?: string;
+      };
+      // Zaten oturum açıksa kullanıcıyı anasayfaya yönlendir
+      if (e.errors?.[0]?.code === "session_exists") {
+        router.push(nextUrl);
+        router.refresh();
+        return;
+      }
       setError(
         e.errors?.[0]?.message ?? e.message ?? "Giriş başarısız.",
       );

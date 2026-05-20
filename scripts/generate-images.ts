@@ -231,6 +231,70 @@ const TARGETS: Record<string, Target> = {
     height: 900,
     outPath: "public/goose-shield.png",
   },
+  sleeping: {
+    name: "Sleeping goose (empty states — sakin lobi)",
+    prompt:
+      "Minimalist illustration of a single white goose curled up sleeping " +
+      "peacefully with eyes closed and beak tucked under wing, soft pastel " +
+      "emerald green gradient background, clean modern vector style, Apple " +
+      "advertising aesthetic, serene tranquil cozy mood, premium magazine " +
+      "quality, no text, generous negative space",
+    width: 1200,
+    height: 900,
+    outPath: "public/goose-sleeping.png",
+  },
+  thinking: {
+    name: "Thinking goose (sorgu no-result)",
+    prompt:
+      "Minimalist illustration of a single white goose with head tilted " +
+      "thoughtfully looking slightly upward, a small soft question mark icon " +
+      "floating gently nearby, soft emerald green gradient background, clean " +
+      "modern vector style, Apple advertising aesthetic, contemplative " +
+      "inquisitive mood, premium magazine quality, no text, generous " +
+      "negative space",
+    width: 1200,
+    height: 900,
+    outPath: "public/goose-thinking.png",
+  },
+  typing: {
+    name: "Writing goose (sikayet)",
+    prompt:
+      "Minimalist illustration of a single white goose standing focused in " +
+      "front of a small abstract document or scroll, holding a feather quill " +
+      "delicately with its wing as if writing, soft emerald green gradient " +
+      "background, clean modern vector style, Apple advertising aesthetic, " +
+      "diligent thoughtful mood, premium magazine quality, no text, generous " +
+      "negative space",
+    width: 1200,
+    height: 900,
+    outPath: "public/goose-typing.png",
+  },
+  celebrating: {
+    name: "Celebrating goose (etkinlikler winner)",
+    prompt:
+      "Minimalist illustration of a single white goose with wings spread " +
+      "joyfully upward as if celebrating victory, small soft abstract " +
+      "confetti and sparkles floating around it, soft emerald green gradient " +
+      "background, clean modern vector style, Apple advertising aesthetic, " +
+      "happy triumphant elegant mood, premium magazine quality, no text, " +
+      "generous negative space",
+    width: 1200,
+    height: 900,
+    outPath: "public/goose-celebrating.png",
+  },
+  sanctuary: {
+    name: "Sanctuary goose (CTA — safe community)",
+    prompt:
+      "Minimalist illustration of a single elegant white goose standing " +
+      "calmly inside a soft warm circular embrace of gentle leaves and " +
+      "feathers suggesting a cozy nest or sanctuary, soft emerald green " +
+      "gradient background, clean modern vector style, Apple advertising " +
+      "aesthetic, safe protected welcoming dignified mood, premium magazine " +
+      "quality, no text, generous negative space",
+    width: 1200,
+    height: 900,
+    outPath: "public/goose-sanctuary.png",
+  },
   logo: {
     name: "App icon logo (square)",
     prompt:
@@ -285,9 +349,10 @@ async function generate(target: Target) {
 }
 
 async function main() {
-  const which = process.argv[2] ?? "hero";
+  const args = process.argv.slice(2);
+  if (args.length === 0) args.push("hero");
 
-  const keys = which === "all" ? Object.keys(TARGETS) : [which];
+  const keys = args.includes("all") ? Object.keys(TARGETS) : args;
   for (const key of keys) {
     const target = TARGETS[key];
     if (!target) {

@@ -47,6 +47,7 @@ export default async function DuyurularPage() {
               <EmptyState
                 title="Henüz duyuru yok"
                 description="Yönetimden bir duyuru gelince burada gözükecek."
+                image="/goose-sleeping.png"
               />
             </CardContent>
           </Card>

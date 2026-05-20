@@ -153,13 +153,16 @@ export default async function HomePage() {
             <div className="animate-scale-in stagger-2 relative hidden lg:block">
               <div className="absolute -inset-6 bg-brand-500/10 blur-3xl rounded-full" />
               <div className="relative overflow-hidden rounded-3xl border border-brand-200/40 shadow-float">
-                <Image
-                  src="/hero.png"
-                  alt="GooseCage topluluğunun maskotu"
-                  width={1600}
-                  height={1000}
-                  priority
-                  className="w-full h-auto"
+                <video
+                  src="/hero-video.mp4"
+                  poster="/hero.png"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  aria-label="GooseCage topluluğunun maskotu"
+                  className="w-full h-auto block"
                 />
               </div>
             </div>

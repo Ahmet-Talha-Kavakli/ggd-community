@@ -7,6 +7,8 @@ interface EmptyStateProps {
   description?: string;
   cta?: { label: string; href: string };
   className?: string;
+  image?: string; // public/ altında dosya yolu, örn: "/goose-sleeping.png"
+  imageSize?: number; // px (default 180)
 }
 
 export function EmptyState({
@@ -14,14 +16,16 @@ export function EmptyState({
   description,
   cta,
   className,
+  image = "/empty-state.png",
+  imageSize = 180,
 }: EmptyStateProps) {
   return (
     <div className={`text-center py-10 px-6 ${className ?? ""}`}>
       <Image
-        src="/empty-state.png"
+        src={image}
         alt=""
-        width={180}
-        height={180}
+        width={imageSize}
+        height={imageSize}
         className="mx-auto opacity-90"
         aria-hidden
       />

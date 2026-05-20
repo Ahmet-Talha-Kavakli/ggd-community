@@ -17,7 +17,7 @@ export default async function SikayetPage() {
         eyebrow="Şikayet"
         title="Bir oyuncuyu şikayet et."
         description="Yaşadığın olumsuz deneyimi yönetime bildir. Şikayetler 48 saat içinde değerlendirilir."
-        image={{ src: "/goose-report.png", alt: "Endişeli kaz" }}
+        image={{ src: "/goose-typing.png", alt: "Şikayet yazan kaz" }}
       />
 
       <section className="container-page py-14">

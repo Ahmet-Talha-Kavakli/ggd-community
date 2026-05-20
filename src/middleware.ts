@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 // Protected route'lar — auth gerekiyor
 const isProtectedRoute = createRouteMatcher([
@@ -9,7 +10,14 @@ const isProtectedRoute = createRouteMatcher([
 
 export default clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {
-    await auth.protect();
+    const { userId } = await auth();
+    if (!userId) {
+      // Clerk'in hosted sign-in'i yerine kendi /giris sayfamıza yönlendir.
+      // (Default auth.protect() accounts.goosecage.com'a gider, CORS sorunu yaratır.)
+      const url = new URL("/giris", req.url);
+      url.searchParams.set("next", req.nextUrl.pathname + req.nextUrl.search);
+      return NextResponse.redirect(url);
+    }
   }
 });
 

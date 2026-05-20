@@ -105,6 +105,7 @@ export default async function EtkinliklerPage() {
                 title="Henüz etkinlik yok"
                 description="İlk etkinlik açıldığında burada görünecek. Duyuruları takip et."
                 cta={{ label: "Duyurulara git", href: "/duyurular" }}
+                image="/goose-celebrating.png"
               />
             </CardContent>
           </Card>
