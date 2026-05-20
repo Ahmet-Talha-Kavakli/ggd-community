@@ -17,6 +17,7 @@ import { formatDateTime, relativeTime } from "@/lib/utils";
 import type { Event, EventStatus, EventType } from "@/lib/supabase/types";
 
 export const metadata = { title: "Etkinlikler" };
+export const revalidate = 60;
 
 const STATUS_META: Record<
   EventStatus,

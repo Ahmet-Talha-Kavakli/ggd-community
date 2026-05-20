@@ -95,7 +95,7 @@ export default async function SikayetlerimPage({
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-3 max-w-3xl">
+          <div className="grid gap-3">
             {reports.map((r) => {
               const status = statusMap[r.status];
               return (

@@ -27,6 +27,8 @@ import type {
   Announcement,
 } from "@/lib/supabase/types";
 
+export const revalidate = 30; // Anasayfa 30 sn cache (oda kodu, son üyeler için)
+
 const FEATURES = [
   {
     icon: MagnifyingGlass,

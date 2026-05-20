@@ -11,6 +11,7 @@ import { formatDate } from "@/lib/utils";
 import type { Warning, Profile, WarningSeverity } from "@/lib/supabase/types";
 
 export const metadata = { title: "Uyarılar" };
+export const revalidate = 30;
 
 type WarningRow = Warning & {
   issued_by_profile: Pick<Profile, "nickname"> | null;

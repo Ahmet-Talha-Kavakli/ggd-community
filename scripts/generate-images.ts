@@ -41,10 +41,12 @@ const TARGETS: Record<string, Target> = {
   og: {
     name: "Open Graph image",
     prompt:
-      "Minimalist branded banner: 'GooseGuard' wordmark in clean modern " +
-      "sans-serif, white text on emerald green gradient background, a " +
-      "small elegant goose silhouette icon, premium tech company aesthetic, " +
-      "Apple style, generous negative space, professional",
+      "Minimalist branded social banner: 'GooseCage' wordmark in clean " +
+      "modern sans-serif typography, white text on smooth emerald green " +
+      "gradient background, a small elegant white goose silhouette icon " +
+      "to the left of the text, premium tech company aesthetic similar " +
+      "to Apple or Stripe marketing, generous negative space, professional " +
+      "social media share card, 1200x630",
     width: 1200,
     height: 630,
     outPath: "public/og.png",

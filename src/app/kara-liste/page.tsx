@@ -11,6 +11,7 @@ import { formatDate } from "@/lib/utils";
 import type { Ban, Profile } from "@/lib/supabase/types";
 
 export const metadata = { title: "Kara Liste" };
+export const revalidate = 30; // 30 saniyede bir cache yenilensin (Vercel ISR)
 
 type BanRow = Ban & { banned_by_profile: Pick<Profile, "nickname"> | null };
 

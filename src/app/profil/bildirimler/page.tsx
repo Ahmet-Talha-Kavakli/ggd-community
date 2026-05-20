@@ -79,7 +79,7 @@ export default async function BildirimlerPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-3 max-w-3xl">
+          <div className="grid gap-3">
             {reports.map((r, i) => (
               <Card key={`r${r.id}`} className={`animate-fade-up stagger-${Math.min(i + 1, 6)}`}>
                 <CardContent className="p-5 flex items-start gap-4">
