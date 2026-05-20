@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
-import { Gear, SpeakerHigh, User } from "@phosphor-icons/react/dist/ssr";
+import { Gear, User } from "@phosphor-icons/react/dist/ssr";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHero } from "@/components/layout/page-hero";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { avatarUrl } from "@/lib/avatars";
-import { SoundToggle } from "@/components/settings/sound-toggle";
 import { AvatarUploader } from "@/components/settings/avatar-uploader";
 import { ProfileSettingsForm } from "./form";
 
@@ -71,19 +70,6 @@ export default async function AyarlarPage() {
             </CardContent>
           </Card>
 
-          <Card className="animate-fade-up">
-            <CardContent className="p-7">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand-700">
-                  <SpeakerHigh size={20} weight="duotone" />
-                </div>
-                <h2 className="text-lg font-semibold tracking-tight text-ink-900">
-                  Görünüm & ses
-                </h2>
-              </div>
-              <SoundToggle />
-            </CardContent>
-          </Card>
         </div>
       </section>
     </>

@@ -10,7 +10,7 @@ import {
   Gear,
   FileText,
 } from "@phosphor-icons/react";
-import { signOutAction } from "@/lib/actions/auth";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
 interface UserMenuProps {
   email: string;
@@ -78,15 +78,12 @@ export function UserMenu({ email, nickname, avatarUrl, isAdmin }: UserMenuProps)
               />
             )}
           </nav>
-          <form action={signOutAction} className="border-t border-ink-200/70">
-            <button
-              type="submit"
-              className="w-full px-4 py-2.5 text-left text-sm font-medium text-danger-600 hover:bg-danger-50 transition-colors flex items-center gap-3"
-            >
+          <div className="border-t border-ink-200/70">
+            <SignOutButton className="w-full px-4 py-2.5 text-left text-sm font-medium text-danger-600 hover:bg-danger-50 transition-colors flex items-center gap-3">
               <SignOut size={16} weight="regular" />
               Çıkış Yap
-            </button>
-          </form>
+            </SignOutButton>
+          </div>
         </div>
       )}
     </div>

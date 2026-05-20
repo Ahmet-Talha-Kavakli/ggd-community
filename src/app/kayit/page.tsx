@@ -29,7 +29,7 @@ export default async function KayitPage() {
               <span className="text-brand-600">parçası ol.</span>
             </h1>
             <p className="text-base text-ink-500 leading-relaxed max-w-sm">
-              GooseGuard topluluğuna katılınca toksik oyuncuları engelleyebilir,
+              GooseCage topluluğuna katılınca toksik oyuncuları engelleyebilir,
               şikayet edebilir ve sağlıklı lobi keyfini doyasıya yaşarsın.
             </p>
             <div className="relative max-w-sm mt-2">
@@ -37,7 +37,7 @@ export default async function KayitPage() {
               <div className="relative overflow-hidden rounded-2xl border border-brand-200/40 shadow-card aspect-square">
                 <Image
                   src="/community.png"
-                  alt="GooseGuard topluluğu — birlikte daha güçlü"
+                  alt="GooseCage topluluğu — birlikte daha güçlü"
                   fill
                   priority
                   className="object-cover"

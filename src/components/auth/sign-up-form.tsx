@@ -1,31 +1,170 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSignUp } from "@clerk/react/legacy";
 import { ArrowRight, AlertCircle, Info, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
-import { signUpAction, signInWithGoogleAction } from "@/lib/actions/auth";
-import { INITIAL_STATE } from "@/lib/actions/auth-types";
 
 export function SignUpForm() {
-  const [state, formAction, pending] = useActionState(
-    signUpAction,
-    INITIAL_STATE,
-  );
+  const { signUp, isLoaded, setActive } = useSignUp();
+  const router = useRouter();
 
-  return (
-    <>
-      <form action={signInWithGoogleAction}>
-        <Button
-          type="submit"
-          variant="outline"
-          className="w-full mb-3"
-        >
-          <GoogleIcon />
-          Google ile kayıt ol
+  const [nickname, setNickname] = useState("");
+  const [email, setEmail] = useState("");
+  const [ggdMainName, setGgdMainName] = useState("");
+  const [ggdUserId, setGgdUserId] = useState("");
+  const [ggdLevel, setGgdLevel] = useState("");
+  const [password, setPassword] = useState("");
+  const [acceptRules, setAcceptRules] = useState(false);
+
+  // Doğrulama akışı için
+  const [verifyMode, setVerifyMode] = useState(false);
+  const [verifyCode, setVerifyCode] = useState("");
+
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
+
+  async function handleCreate(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!isLoaded || pending) return;
+    setError("");
+
+    if (!acceptRules) {
+      setError("Lobi kurallarını kabul etmelisin.");
+      return;
+    }
+
+    setPending(true);
+    try {
+      const created = await signUp.create({
+        emailAddress: email,
+        password,
+        username: nickname,
+        unsafeMetadata: {
+          nickname,
+          ggd_user_id: ggdUserId,
+          ggd_main_name: ggdMainName,
+          ggd_level: ggdLevel ? Number(ggdLevel) : null,
+        },
+      });
+
+      // Email doğrulama gerekiyorsa kod modunu aç
+      if (created.status === "missing_requirements") {
+        await signUp.prepareEmailAddressVerification({
+          strategy: "email_code",
+        });
+        setVerifyMode(true);
+      } else if (created.status === "complete") {
+        await setActive({ session: created.createdSessionId });
+        router.push("/profil");
+        router.refresh();
+      } else {
+        setError("Kayıt tamamlanamadı: " + created.status);
+      }
+    } catch (err: unknown) {
+      const e = err as { errors?: { message: string }[]; message?: string };
+      setError(e.errors?.[0]?.message ?? e.message ?? "Kayıt başarısız.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function handleVerify(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!isLoaded || pending) return;
+    setError("");
+    setPending(true);
+    try {
+      const result = await signUp.attemptEmailAddressVerification({
+        code: verifyCode,
+      });
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        router.push("/profil");
+        router.refresh();
+      } else {
+        setError("Kod hatalı veya eksik.");
+      }
+    } catch (err: unknown) {
+      const e = err as { errors?: { message: string }[]; message?: string };
+      setError(e.errors?.[0]?.message ?? e.message ?? "Doğrulama başarısız.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function handleGoogle() {
+    if (!isLoaded) return;
+    try {
+      await signUp.authenticateWithRedirect({
+        strategy: "oauth_google",
+        redirectUrl: "/sso-callback",
+        redirectUrlComplete: "/profil",
+      });
+    } catch (err: unknown) {
+      const e = err as { errors?: { message: string }[] };
+      setError(e.errors?.[0]?.message ?? "Google ile kayıt başarısız.");
+    }
+  }
+
+  // -------- VERIFY EKRANI --------
+  if (verifyMode) {
+    return (
+      <form onSubmit={handleVerify} className="flex flex-col gap-4">
+        <div>
+          <Label htmlFor="code">Email doğrulama kodu</Label>
+          <Input
+            id="code"
+            type="text"
+            placeholder="6 haneli kod"
+            value={verifyCode}
+            onChange={(e) => setVerifyCode(e.target.value)}
+            required
+          />
+          <p className="mt-1.5 text-xs text-ink-500 flex items-start gap-1.5">
+            <Info className="h-3 w-3 mt-0.5 shrink-0" />
+            {email} adresine gönderilen 6 haneli kodu gir.
+          </p>
+        </div>
+        {error && (
+          <div className="rounded-xl border border-danger-500/20 bg-danger-50 px-4 py-3 text-sm text-danger-700 flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+        <Button type="submit" className="w-full mt-2" disabled={pending}>
+          {pending ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Doğrulanıyor...
+            </>
+          ) : (
+            <>
+              Doğrula ve Kaydı Tamamla
+              <ArrowRight className="h-4 w-4" />
+            </>
+          )}
         </Button>
       </form>
+    );
+  }
+
+  // -------- KAYIT FORMU --------
+  return (
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full mb-3"
+        onClick={handleGoogle}
+        disabled={!isLoaded || pending}
+      >
+        <GoogleIcon />
+        Google ile kayıt ol
+      </Button>
 
       <div className="relative my-5">
         <div className="absolute inset-0 flex items-center">
@@ -38,13 +177,14 @@ export function SignUpForm() {
         </div>
       </div>
 
-      <form action={formAction} className="flex flex-col gap-4">
+      <form onSubmit={handleCreate} className="flex flex-col gap-4">
         <Field
           id="nickname"
           label="Site kullanıcı adın"
           placeholder="Topluluk içi nick"
           required
-          error={state.fieldErrors?.nickname}
+          value={nickname}
+          onChange={setNickname}
         />
         <Field
           id="email"
@@ -53,7 +193,8 @@ export function SignUpForm() {
           placeholder="ornek@email.com"
           autoComplete="email"
           required
-          error={state.fieldErrors?.email}
+          value={email}
+          onChange={setEmail}
         />
         <div>
           <Field
@@ -61,7 +202,8 @@ export function SignUpForm() {
             label="GGD ana ismin"
             placeholder="Hesap-seviyesi ismin (Friend Code'la sabit)"
             required
-            error={state.fieldErrors?.ggd_main_name}
+            value={ggdMainName}
+            onChange={setGgdMainName}
             noWrapper
           />
           <p className="mt-1.5 text-xs text-ink-500 flex items-start gap-1.5">
@@ -76,7 +218,8 @@ export function SignUpForm() {
             label="GGD Friend Code / User ID"
             placeholder="örn. 123456789"
             required
-            error={state.fieldErrors?.ggd_user_id}
+            value={ggdUserId}
+            onChange={setGgdUserId}
             noWrapper
           />
           <p className="mt-1.5 text-xs text-ink-500 flex items-start gap-1.5">
@@ -90,7 +233,8 @@ export function SignUpForm() {
             type="number"
             label="GGD Level (opsiyonel)"
             placeholder="örn. 42"
-            error={state.fieldErrors?.ggd_level}
+            value={ggdLevel}
+            onChange={setGgdLevel}
             noWrapper
           />
           <p className="mt-1.5 text-xs text-ink-500 flex items-start gap-1.5">
@@ -105,36 +249,44 @@ export function SignUpForm() {
           placeholder="En az 8 karakter"
           autoComplete="new-password"
           required
-          error={state.fieldErrors?.password}
+          value={password}
+          onChange={setPassword}
         />
 
         <label className="flex items-start gap-2.5 text-sm text-ink-600 cursor-pointer mt-1">
           <input
             type="checkbox"
-            name="accept_rules"
             className="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500"
+            checked={acceptRules}
+            onChange={(e) => setAcceptRules(e.target.checked)}
           />
           <span className="leading-snug">
-            <Link href="/kurallar" target="_blank" className="text-brand-700 hover:underline">
+            <Link
+              href="/kurallar"
+              target="_blank"
+              className="text-brand-700 hover:underline"
+            >
               Lobi kurallarını
             </Link>{" "}
             okudum ve kabul ediyorum.
           </span>
         </label>
-        {state.fieldErrors?.accept_rules && (
-          <p className="text-xs text-danger-600">
-            {state.fieldErrors.accept_rules}
-          </p>
-        )}
 
-        {state.error && (
+        {/* CAPTCHA için Clerk container — görsel etkilemesin diye küçük */}
+        <div id="clerk-captcha" className="empty:hidden" />
+
+        {error && (
           <div className="rounded-xl border border-danger-500/20 bg-danger-50 px-4 py-3 text-sm text-danger-700 flex items-start gap-2">
             <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-            <span>{state.error}</span>
+            <span>{error}</span>
           </div>
         )}
 
-        <Button type="submit" className="w-full mt-2" disabled={pending}>
+        <Button
+          type="submit"
+          className="w-full mt-2"
+          disabled={!isLoaded || pending}
+        >
           {pending ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -159,7 +311,8 @@ interface FieldProps {
   type?: string;
   autoComplete?: string;
   required?: boolean;
-  error?: string;
+  value: string;
+  onChange: (v: string) => void;
   noWrapper?: boolean;
 }
 
@@ -170,7 +323,8 @@ function Field({
   type = "text",
   autoComplete,
   required,
-  error,
+  value,
+  onChange,
   noWrapper,
 }: FieldProps) {
   const content = (
@@ -183,9 +337,9 @@ function Field({
         placeholder={placeholder}
         autoComplete={autoComplete}
         required={required}
-        aria-invalid={!!error}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
       />
-      {error && <p className="mt-1.5 text-xs text-danger-600">{error}</p>}
     </>
   );
   return noWrapper ? content : <div>{content}</div>;
@@ -213,4 +367,3 @@ function GoogleIcon() {
     </svg>
   );
 }
-

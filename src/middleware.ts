@@ -1,16 +1,22 @@
-import { type NextRequest } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-export async function middleware(request: NextRequest) {
-  return await updateSession(request);
-}
+// Protected route'lar — auth gerekiyor
+const isProtectedRoute = createRouteMatcher([
+  "/admin(.*)",
+  "/profil(.*)",
+  "/sikayet(.*)",
+]);
+
+export default clerkMiddleware(async (auth, req) => {
+  if (isProtectedRoute(req)) {
+    await auth.protect();
+  }
+});
 
 export const config = {
   matcher: [
-    /*
-     * _next/static, _next/image, favicon ve resim/font dosyaları hariç tüm
-     * yollarda çalışır.
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Next internals + static asset'ler hariç her route
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api|trpc)(.*)",
   ],
 };

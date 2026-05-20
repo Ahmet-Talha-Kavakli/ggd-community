@@ -1,31 +1,77 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSignIn } from "@clerk/react/legacy";
 import { ArrowRight, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
-import { signInAction, signInWithGoogleAction } from "@/lib/actions/auth";
-import { INITIAL_STATE } from "@/lib/actions/auth-types";
 
 export function SignInForm() {
-  const [state, formAction, pending] = useActionState(
-    signInAction,
-    INITIAL_STATE,
-  );
+  const { signIn, isLoaded, setActive } = useSignIn();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextUrl = searchParams.get("next") ?? "/";
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
+
+  async function handleEmailSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!isLoaded || pending) return;
+    setError("");
+    setPending(true);
+    try {
+      const result = await signIn.create({
+        identifier: email,
+        password,
+      });
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        router.push(nextUrl);
+        router.refresh();
+      } else {
+        setError("Giriş tamamlanamadı. Lütfen tekrar dene.");
+      }
+    } catch (err: unknown) {
+      const e = err as { errors?: { message: string }[]; message?: string };
+      setError(
+        e.errors?.[0]?.message ?? e.message ?? "Giriş başarısız.",
+      );
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function handleGoogle() {
+    if (!isLoaded) return;
+    try {
+      await signIn.authenticateWithRedirect({
+        strategy: "oauth_google",
+        redirectUrl: "/sso-callback",
+        redirectUrlComplete: nextUrl,
+      });
+    } catch (err: unknown) {
+      const e = err as { errors?: { message: string }[] };
+      setError(e.errors?.[0]?.message ?? "Google ile giriş başarısız.");
+    }
+  }
 
   return (
     <>
-      <form action={signInWithGoogleAction}>
-        <Button
-          type="submit"
-          variant="outline"
-          className="w-full mb-3"
-        >
-          <GoogleIcon />
-          Google ile devam et
-        </Button>
-      </form>
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full mb-3"
+        onClick={handleGoogle}
+        disabled={!isLoaded || pending}
+      >
+        <GoogleIcon />
+        Google ile devam et
+      </Button>
 
       <div className="relative my-5">
         <div className="absolute inset-0 flex items-center">
@@ -38,7 +84,7 @@ export function SignInForm() {
         </div>
       </div>
 
-      <form action={formAction} className="flex flex-col gap-4">
+      <form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
         <div>
           <Label htmlFor="email">Email</Label>
           <Input
@@ -48,13 +94,9 @@ export function SignInForm() {
             placeholder="ornek@email.com"
             autoComplete="email"
             required
-            aria-invalid={!!state.fieldErrors?.email}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
-          {state.fieldErrors?.email && (
-            <p className="mt-1.5 text-xs text-danger-600">
-              {state.fieldErrors.email}
-            </p>
-          )}
         </div>
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -75,23 +117,23 @@ export function SignInForm() {
             placeholder="••••••••"
             autoComplete="current-password"
             required
-            aria-invalid={!!state.fieldErrors?.password}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
-          {state.fieldErrors?.password && (
-            <p className="mt-1.5 text-xs text-danger-600">
-              {state.fieldErrors.password}
-            </p>
-          )}
         </div>
 
-        {state.error && (
+        {error && (
           <div className="rounded-xl border border-danger-500/20 bg-danger-50 px-4 py-3 text-sm text-danger-700 flex items-start gap-2">
             <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-            <span>{state.error}</span>
+            <span>{error}</span>
           </div>
         )}
 
-        <Button type="submit" className="w-full mt-2" disabled={pending}>
+        <Button
+          type="submit"
+          className="w-full mt-2"
+          disabled={!isLoaded || pending}
+        >
           {pending ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />

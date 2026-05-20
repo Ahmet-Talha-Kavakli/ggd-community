@@ -48,7 +48,7 @@ export default async function YonetimPage() {
               <div className="relative overflow-hidden rounded-3xl border border-brand-200/40 shadow-card">
                 <Image
                   src="/guard.png"
-                  alt="GooseGuard yönetimi"
+                  alt="GooseCage yönetimi"
                   width={1200}
                   height={900}
                   className="w-full h-auto"

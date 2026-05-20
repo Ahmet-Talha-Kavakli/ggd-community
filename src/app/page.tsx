@@ -153,7 +153,7 @@ export default async function HomePage() {
               <div className="relative overflow-hidden rounded-3xl border border-brand-200/40 shadow-float">
                 <Image
                   src="/hero.png"
-                  alt="GooseGuard topluluğunun maskotu"
+                  alt="GooseCage topluluğunun maskotu"
                   width={1600}
                   height={1000}
                   priority

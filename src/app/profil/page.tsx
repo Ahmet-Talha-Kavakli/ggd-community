@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import {
@@ -8,13 +9,14 @@ import {
   FileText,
   LogOut,
   Clock,
+  Edit,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHero } from "@/components/layout/page-hero";
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { signOutAction } from "@/lib/actions/auth";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 
@@ -89,15 +91,10 @@ export default async function ProfilPage() {
                     </a>
                   ))}
                   <div className="my-1 mx-3 border-t border-ink-200" />
-                  <form action={signOutAction}>
-                    <button
-                      type="submit"
-                      className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-danger-600 hover:bg-danger-50 transition-colors text-left"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Çıkış Yap
-                    </button>
-                  </form>
+                  <SignOutButton className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-danger-600 hover:bg-danger-50 transition-colors text-left">
+                    <LogOut className="h-4 w-4" />
+                    Çıkış Yap
+                  </SignOutButton>
                 </nav>
               </CardContent>
             </Card>
@@ -198,9 +195,12 @@ export default async function ProfilPage() {
                     </dd>
                   </div>
                 </dl>
-                <Button variant="outline" size="sm" className="mt-6" disabled>
-                  Bilgileri Düzenle (yakında)
-                </Button>
+                <Link href="/profil/ayarlar">
+                  <Button variant="outline" size="sm" className="mt-6">
+                    <Edit className="h-3.5 w-3.5" />
+                    Bilgileri Düzenle
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
 

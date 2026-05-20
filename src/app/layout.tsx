@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Sora } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
     "uyarı",
     "şikayet",
     "topluluk",
-    "GooseGuard",
+    "GooseCage",
   ],
   icons: {
     icon: [
@@ -71,24 +72,36 @@ export default async function RootLayout({
   const current = await getCurrentUser();
 
   return (
-    <html lang="tr" className={`${sora.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-white text-ink-900">
-        <SiteHeader
-          user={
-            current
-              ? {
-                  email: current.email,
-                  nickname: current.nickname,
-                  avatarUrl: current.avatarUrl,
-                  isAdmin: current.isAdmin,
-                }
-              : null
-          }
-        />
-        <main className="flex-1 flex flex-col">{children}</main>
-        <SiteFooter />
-        <SoundEffects />
-      </body>
-    </html>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#059669",
+          colorText: "#18181b",
+          colorBackground: "#ffffff",
+          fontFamily: "var(--font-sora)",
+          borderRadius: "0.75rem",
+        },
+      }}
+    >
+      <html lang="tr" className={`${sora.variable} h-full antialiased`}>
+        <body className="min-h-full flex flex-col bg-white text-ink-900">
+          <SiteHeader
+            user={
+              current
+                ? {
+                    email: current.email,
+                    nickname: current.nickname,
+                    avatarUrl: current.avatarUrl,
+                    isAdmin: current.isAdmin,
+                  }
+                : null
+            }
+          />
+          <main className="flex-1 flex flex-col">{children}</main>
+          <SiteFooter />
+          <SoundEffects />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

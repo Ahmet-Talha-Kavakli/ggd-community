@@ -5,8 +5,6 @@
 // her tıklamada ±randomization ile robotik hissi kırılır, butonun rolüne
 // göre farklı palet seçilir.
 
-const STORAGE_KEY = "goose-sounds-enabled";
-
 let ctx: AudioContext | null = null;
 
 function getCtx(): AudioContext | null {
@@ -21,17 +19,9 @@ function getCtx(): AudioContext | null {
   return ctx;
 }
 
+// Ses efektleri her zaman açık — kullanıcı toggle'ı kaldırıldı.
 export function isSoundEnabled(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.localStorage.getItem(STORAGE_KEY) === "1";
-}
-
-export function setSoundEnabled(enabled: boolean): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, enabled ? "1" : "0");
-  window.dispatchEvent(
-    new CustomEvent("goose-sounds-changed", { detail: { enabled } }),
-  );
+  return typeof window !== "undefined";
 }
 
 type Tone = {

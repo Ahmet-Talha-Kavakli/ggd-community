@@ -37,7 +37,7 @@ export default async function GirisPage() {
               <div className="relative overflow-hidden rounded-2xl border border-brand-200/40 shadow-card aspect-square">
                 <Image
                   src="/guard.png"
-                  alt="GooseGuard"
+                  alt="GooseCage"
                   fill
                   priority
                   className="object-cover"

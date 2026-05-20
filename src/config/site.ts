@@ -1,9 +1,9 @@
 export const SITE = {
-  name: "GooseGuard",
-  shortName: "GooseGuard",
+  name: "GooseCage",
+  shortName: "GooseCage",
   tagline: "Goose Goose Duck için sağlıklı bir topluluk",
   description:
-    "GooseGuard — Goose Goose Duck lobi yönetim merkezi. Uyarı, kara liste, şikayet, topluluk sohbeti ve daha fazlası.",
-  url: "http://localhost:3000",
+    "GooseCage — Goose Goose Duck lobi yönetim merkezi. Uyarı, kara liste, şikayet, topluluk sohbeti ve daha fazlası.",
+  url: "https://goosecage.com.tr",
   ogImage: "/og.png",
 } as const;

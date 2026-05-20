@@ -37,7 +37,7 @@ export function Logo({
       >
         <Image
           src="/logo-icon.png"
-          alt="GooseGuard"
+          alt="GooseCage"
           width={px * 2}
           height={px * 2}
           priority

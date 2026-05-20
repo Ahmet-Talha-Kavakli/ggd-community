@@ -72,7 +72,7 @@ function layout(title: string, body: string) {
     <tr><td style="padding:32px 16px">
       <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e4e4e7">
         <tr><td style="padding:24px 28px;background:linear-gradient(135deg,#10b981,#047857);color:#fff">
-          <div style="font-weight:700;font-size:18px;letter-spacing:-0.02em">🪿 GooseGuard</div>
+          <div style="font-weight:700;font-size:18px;letter-spacing:-0.02em">🪿 GooseCage</div>
         </td></tr>
         <tr><td style="padding:32px 28px">
           ${body}
@@ -140,7 +140,7 @@ export async function sendReportResolvedEmail({
 
   return sendEmail({
     to,
-    subject: `Şikayetin ${subjectStatus} — GooseGuard`,
+    subject: `Şikayetin ${subjectStatus} — GooseCage`,
     html: layout("Şikayet sonucu", body),
     text: `Merhaba ${reporterNickname}, ${targetNickname} hakkındaki şikayetin: ${statusText}${
       note ? ` Not: ${note}` : ""
@@ -175,7 +175,7 @@ export async function sendVerificationEmail({
     `;
     return sendEmail({
       to,
-      subject: `Hesabın onaylandı — GooseGuard`,
+      subject: `Hesabın onaylandı — GooseCage`,
       html: layout("Hoş geldin", body),
       text: `Hoş geldin ${nickname}! Hesabın onaylandı, artık tüm özellikleri kullanabilirsin.`,
     });
@@ -198,7 +198,7 @@ export async function sendVerificationEmail({
   `;
   return sendEmail({
     to,
-    subject: `Üyelik başvurun — GooseGuard`,
+    subject: `Üyelik başvurun — GooseCage`,
     html: layout("Başvuru sonucu", body),
     text: `Merhaba ${nickname}, üyelik başvurun reddedildi. Destek hattından iletişime geç.`,
   });
@@ -236,7 +236,7 @@ export async function sendBanNotificationEmail({
   `;
   return sendEmail({
     to,
-    subject: `Hesabın ${durationText} banlandı — GooseGuard`,
+    subject: `Hesabın ${durationText} banlandı — GooseCage`,
     html: layout("Ban bildirimi", body),
     text: `Merhaba ${nickname}, hesabın ${durationText} banlandı. Sebep: ${reason}`,
   });
