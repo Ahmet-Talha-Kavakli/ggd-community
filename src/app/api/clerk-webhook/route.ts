@@ -96,17 +96,84 @@ export async function POST(req: Request) {
           ? Number(meta.ggd_level) || null
           : null;
 
-    // Profil zaten varsa skip (idempotency)
-    const { data: existing } = await supabase
+    // 1) clerk_user_id ile profile ara (idempotency — retry'larda skip)
+    const { data: existingByClerk } = await supabase
       .from("profiles")
       .select("id")
       .eq("clerk_user_id", u.id)
       .maybeSingle();
 
     let profileId: string;
-    if ((existing as { id: string } | null)?.id) {
-      profileId = (existing as { id: string }).id;
+
+    if ((existingByClerk as { id: string } | null)?.id) {
+      profileId = (existingByClerk as { id: string }).id;
+    } else if (email) {
+      // 2) Email ile ara — eski Supabase auth artigi veya orphan (webhook
+      // daha onceden fail olmus) profile olabilir. Yeni satir insert
+      // edersek UNIQUE constraint patlar, onun yerine mevcut satira
+      // clerk_user_id'yi bagla.
+      const { data: existingByEmail } = await supabase
+        .from("profiles")
+        .select("id, clerk_user_id")
+        .eq("email", email)
+        .maybeSingle();
+
+      const byEmail = existingByEmail as {
+        id: string;
+        clerk_user_id: string | null;
+      } | null;
+
+      if (byEmail?.id) {
+        profileId = byEmail.id;
+        if (!byEmail.clerk_user_id) {
+          const { error } = await supabase
+            .from("profiles")
+            .update({
+              clerk_user_id: u.id,
+              nickname,
+              ggd_user_id: ggdUserId,
+              ggd_main_name: ggdMainName,
+              ggd_level: ggdLevel,
+            })
+            .eq("id", profileId);
+          if (error) {
+            console.error("orphan profile link failed:", error.message);
+            return NextResponse.json(
+              { error: error.message },
+              { status: 500 },
+            );
+          }
+        } else if (byEmail.clerk_user_id !== u.id) {
+          // Email baska bir Clerk user_id ile bagli — collision. Sessiz
+          // gec, alarm logla. Manual mudahale gerekir.
+          console.error(
+            `email collision: ${email} already linked to ${byEmail.clerk_user_id}, skipping ${u.id}`,
+          );
+          return NextResponse.json(
+            { error: "email already linked to another user" },
+            { status: 409 },
+          );
+        }
+      } else {
+        profileId = randomUUID();
+        const { error } = await supabase.from("profiles").insert({
+          id: profileId,
+          clerk_user_id: u.id,
+          email,
+          nickname,
+          ggd_user_id: ggdUserId,
+          ggd_main_name: ggdMainName,
+          ggd_level: ggdLevel,
+          role: "member",
+          verification_status: "pending",
+        });
+        if (error) {
+          console.error("profile insert failed:", error.message);
+          return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+      }
     } else {
+      // Edge case: hic email yok. Yeni profile insert.
       profileId = randomUUID();
       const { error } = await supabase.from("profiles").insert({
         id: profileId,
