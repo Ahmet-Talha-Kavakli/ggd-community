@@ -1,18 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { SignInForm } from "@/components/auth/sign-in-form";
-import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Giriş" };
 
 export default async function GirisPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (user) redirect("/");
+  const { userId } = await auth();
+  if (userId) redirect("/");
 
   return (
     <section className="hero-wash flex-1 py-12 md:py-16 flex items-center">
