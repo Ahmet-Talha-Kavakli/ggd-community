@@ -39,10 +39,10 @@ export function SiteHeader({ user }: SiteHeaderProps) {
   return (
     <header className="sticky top-0 z-50 glass border-b border-ink-200/60">
       <div className="container-page flex h-16 items-center justify-between gap-4">
-        <div className="flex items-center gap-6 lg:gap-8 min-w-0">
+        <div className="flex items-center gap-4 xl:gap-6 min-w-0 flex-1">
           <Logo />
 
-          <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1">
+          <nav className="hidden xl:flex items-center gap-0 2xl:gap-0.5">
             {NAV.map((item) => {
               const active =
                 item.href === "/"
@@ -53,7 +53,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "whitespace-nowrap px-2 xl:px-2.5 py-2 text-sm rounded-lg transition-all duration-200",
+                    "whitespace-nowrap px-2 2xl:px-2.5 py-2 text-[13px] 2xl:text-sm rounded-lg transition-all duration-200",
                     active
                       ? "text-brand-700 bg-brand-50"
                       : "text-ink-600 hover:text-ink-900 hover:bg-ink-100",
@@ -66,7 +66,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
           </nav>
         </div>
 
-        <div className="hidden lg:flex items-center gap-2 shrink-0">
+        <div className="hidden xl:flex items-center gap-2 shrink-0">
           {user ? (
             <UserMenu {...user} />
           ) : (
@@ -85,7 +85,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
 
         <button
           aria-label="Menü"
-          className="lg:hidden grid h-10 w-10 place-items-center rounded-lg text-ink-700 hover:bg-ink-100 transition-colors"
+          className="xl:hidden grid h-10 w-10 place-items-center rounded-lg text-ink-700 hover:bg-ink-100 transition-colors"
           onClick={() => setOpen((v) => !v)}
         >
           {open ? <X size={20} weight="regular" /> : <List size={20} weight="regular" />}
@@ -93,7 +93,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
       </div>
 
       {open && (
-        <div className="lg:hidden border-t border-ink-200/60 bg-white/95 backdrop-blur">
+        <div className="xl:hidden border-t border-ink-200/60 bg-white/95 backdrop-blur">
           <div className="container-page py-4 flex flex-col gap-1">
             {NAV.map((item) => {
               const active =
