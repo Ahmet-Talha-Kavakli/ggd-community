@@ -48,7 +48,7 @@ export function UserMenu({ email, nickname, avatarUrl, isAdmin }: UserMenuProps)
           className="rounded-full border border-ink-200"
           unoptimized
         />
-        <span className="text-sm font-medium text-ink-800 hidden sm:inline">
+        <span className="text-sm font-medium text-ink-800 hidden sm:inline-block max-w-[120px] truncate">
           {nickname}
         </span>
       </button>
