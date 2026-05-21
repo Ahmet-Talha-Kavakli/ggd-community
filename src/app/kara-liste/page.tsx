@@ -33,7 +33,11 @@ export default async function KaraListePage() {
         eyebrow="Kara liste"
         title="Banlanmış oyuncular."
         description="Topluluğumuzdan ban almış oyuncuların güncel listesi. Şeffaflık için herkese açık."
-        image={{ src: "/goose-shield.png", alt: "Koruyucu kaz" }}
+        image={{
+          src: "/goose-shield.png",
+          alt: "Koruyucu kaz",
+          videoSrc: "/kara-liste-video.mp4",
+        }}
       />
 
       <section className="container-page py-14">

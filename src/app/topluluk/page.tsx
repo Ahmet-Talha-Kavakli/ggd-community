@@ -33,7 +33,11 @@ export default async function ToplulukPage() {
         eyebrow="Topluluk"
         title="Birlikte muhabbet edelim."
         description="Kanallı sohbet sistemimiz ile oyuncularla anlık iletişim kur, lobi ara, deneyim paylaş."
-        image={{ src: "/community.png", alt: "Birlikte duran kazlar" }}
+        image={{
+          src: "/community.png",
+          alt: "Birlikte duran kazlar",
+          videoSrc: "/topluluk-video.mp4",
+        }}
       />
 
       <section className="container-page py-14">

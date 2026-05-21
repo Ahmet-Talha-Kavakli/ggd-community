@@ -103,7 +103,11 @@ export default async function SorguPage({ searchParams }: SearchParamsProps) {
         eyebrow="Oyuncu sorgu"
         title="Bir oyuncuyu sorgula."
         description="GGD User ID, ana isim veya oyun içi nick — hangisi elindeyse aratabilirsin. Herkese açık, üyelik gerekmez."
-        image={{ src: "/goose-search.png", alt: "Arayan kaz" }}
+        image={{
+          src: "/goose-search.png",
+          alt: "Arayan kaz",
+          videoSrc: "/sorgu-video.mp4",
+        }}
       />
 
       <section className="container-page py-14">

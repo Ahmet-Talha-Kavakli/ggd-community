@@ -41,7 +41,11 @@ export default async function UyarilarPage() {
         eyebrow="Uyarılar"
         title="Aktif uyarılar."
         description="Kurallara aykırı davranan ama henüz banlanmamış oyuncular. 3 uyarı = otomatik ban."
-        image={{ src: "/goose-warning.png", alt: "Tetikte bekleyen kaz" }}
+        image={{
+          src: "/goose-warning.png",
+          alt: "Tetikte bekleyen kaz",
+          videoSrc: "/uyarilar-video.mp4",
+        }}
       />
 
       <section className="container-page py-14">

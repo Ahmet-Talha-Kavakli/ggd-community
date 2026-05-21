@@ -13,6 +13,8 @@ interface PageHeroProps {
     alt: string;
     width?: number;
     height?: number;
+    // Verilirse video render edilir, image poster olarak kullanilir.
+    videoSrc?: string;
   };
 }
 
@@ -50,14 +52,28 @@ export function PageHero({
             <div className="animate-scale-in stagger-2 relative">
               <div className="absolute -inset-4 bg-brand-500/10 blur-3xl rounded-full" />
               <div className="relative overflow-hidden rounded-3xl border border-brand-200/40 shadow-card">
-                <Image
-                  src={image.src}
-                  alt={image.alt}
-                  width={image.width ?? 1200}
-                  height={image.height ?? 900}
-                  className="w-full h-auto"
-                  priority
-                />
+                {image.videoSrc ? (
+                  <video
+                    src={image.videoSrc}
+                    poster={image.src}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                    aria-label={image.alt}
+                    className="w-full h-auto block"
+                  />
+                ) : (
+                  <Image
+                    src={image.src}
+                    alt={image.alt}
+                    width={image.width ?? 1200}
+                    height={image.height ?? 900}
+                    className="w-full h-auto"
+                    priority
+                  />
+                )}
               </div>
             </div>
           </div>

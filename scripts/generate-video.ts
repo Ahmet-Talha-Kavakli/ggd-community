@@ -1,6 +1,9 @@
 /* eslint-disable no-console */
-// FAL.AI ile kısa hero videolar üreten one-shot script.
-// Kullanım: npx tsx scripts/generate-video.ts [hero|community]
+// FAL.AI ile kısa atmosferik videolar üreten one-shot script.
+// Kullanım:
+//   npx tsx scripts/generate-video.ts hero
+//   npx tsx scripts/generate-video.ts sorgu kara-liste uyarilar topluluk
+//   npx tsx scripts/generate-video.ts all
 //
 // Model: fal-ai/bytedance/seedance-2.0/fast/text-to-video (ucuz, hızlı)
 
@@ -27,16 +30,67 @@ interface VideoTarget {
   resolution?: "480p" | "720p";
 }
 
+const COMMON_STYLE =
+  "minimalist Apple advertising aesthetic, clean vector illustration style, " +
+  "very subtle motion, slow gentle, no camera movement, looping seamless";
+
 const TARGETS: Record<string, VideoTarget> = {
   hero: {
     name: "Anasayfa hero video (4sn döngü)",
     prompt:
       "A single elegant white goose standing serenely in side profile, " +
       "gently breathing with subtle slow head movement, soft pastel emerald " +
-      "green gradient background, minimalist Apple advertising aesthetic, " +
-      "clean vector illustration style, peaceful calm meditative mood, " +
-      "very subtle motion, slow gentle, no camera movement, looping seamless",
+      "green gradient background, peaceful calm meditative mood, " +
+      COMMON_STYLE,
     outPath: "public/hero-video.mp4",
+    duration: "4",
+    aspectRatio: "16:9",
+    resolution: "720p",
+  },
+  sorgu: {
+    name: "Sorgu sayfası video — dedektif/büyüteç (4sn döngü)",
+    prompt:
+      "A single elegant white goose in side profile with a large translucent " +
+      "magnifying glass slowly drifting in front of it, subtle reflective " +
+      "shimmer on the glass, soft pastel emerald green gradient background, " +
+      "investigative detective mood, curious and focused, " + COMMON_STYLE,
+    outPath: "public/sorgu-video.mp4",
+    duration: "4",
+    aspectRatio: "16:9",
+    resolution: "720p",
+  },
+  "kara-liste": {
+    name: "Kara Liste sayfası video — kafes/gölge (4sn döngü)",
+    prompt:
+      "A single elegant white goose in side profile silhouetted behind soft " +
+      "vertical cage bars casting gentle shadows, cooler darker slate-emerald " +
+      "gradient background, contemplative quiet mood, very subtle breathing " +
+      "motion, " + COMMON_STYLE,
+    outPath: "public/kara-liste-video.mp4",
+    duration: "4",
+    aspectRatio: "16:9",
+    resolution: "720p",
+  },
+  uyarilar: {
+    name: "Uyarılar sayfası video — amber/dikkat (4sn döngü)",
+    prompt:
+      "A single elegant white goose standing alert in side profile, soft " +
+      "warm amber-yellow gradient background slowly pulsing like a gentle " +
+      "warning light, attentive cautious mood, very subtle motion, " +
+      COMMON_STYLE,
+    outPath: "public/uyarilar-video.mp4",
+    duration: "4",
+    aspectRatio: "16:9",
+    resolution: "720p",
+  },
+  topluluk: {
+    name: "Topluluk sayfası video — grup/sıcak (4sn döngü)",
+    prompt:
+      "Three elegant white geese standing together side by side in side " +
+      "profile, gently breathing with subtle independent head movements, soft " +
+      "pastel emerald green gradient background, warm friendly community " +
+      "mood, " + COMMON_STYLE,
+    outPath: "public/topluluk-video.mp4",
     duration: "4",
     aspectRatio: "16:9",
     resolution: "720p",
@@ -92,9 +146,17 @@ async function generate(target: VideoTarget) {
 }
 
 async function main() {
-  const which = process.argv[2] ?? "hero";
+  const args = process.argv.slice(2);
+  if (args.length === 0) {
+    console.error(
+      `❌ Hedef belirt. Mevcut: ${Object.keys(TARGETS).join(", ")} veya 'all'`,
+    );
+    process.exit(1);
+  }
 
-  const keys = which === "all" ? Object.keys(TARGETS) : [which];
+  const keys =
+    args.length === 1 && args[0] === "all" ? Object.keys(TARGETS) : args;
+
   for (const key of keys) {
     const target = TARGETS[key];
     if (!target) {
