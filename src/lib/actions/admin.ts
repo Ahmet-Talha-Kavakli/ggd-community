@@ -12,6 +12,11 @@ import {
   sendVerificationEmail,
   sendWarningNotificationEmail,
 } from "@/lib/email";
+import {
+  createNotification,
+  createNotificationsBulk,
+} from "@/lib/notifications";
+import { createAdminClient } from "@/lib/supabase/server";
 import type { AdminActionState } from "./admin-types";
 import { GGD_MAPS, GGD_MODES } from "@/lib/ggd-presets";
 
@@ -187,20 +192,41 @@ export async function createBanAction(
     metadata: { ggd_user_id: parsed.data.ggd_user_id, duration: parsed.data.duration },
   });
 
-  // Banlanan oyuncu sitemize kayıtlıysa email bildirimi (sadece ID bilgisi varsa)
+  // Banlanan oyuncu sitemize kayıtlıysa email + in-app bildirim
   if (parsed.data.ggd_user_id) {
     const { data: targetProfile } = await supabase
       .from("profiles")
-      .select("email, nickname")
+      .select("id, email, nickname")
       .eq("ggd_user_id", parsed.data.ggd_user_id)
       .maybeSingle();
-    const tp = targetProfile as { email: string; nickname: string } | null;
-    if (tp?.email) {
-      await sendBanNotificationEmail({
-        to: tp.email,
-        nickname: tp.nickname,
-        reason: parsed.data.reason,
-        duration: parsed.data.duration,
+    const tp = targetProfile as {
+      id: string;
+      email: string;
+      nickname: string;
+    } | null;
+    if (tp) {
+      const durationText =
+        parsed.data.duration === "permanent"
+          ? "kalıcı"
+          : `${parsed.data.duration} süreli`;
+      if (tp.email) {
+        await sendBanNotificationEmail({
+          to: tp.email,
+          nickname: tp.nickname,
+          reason: parsed.data.reason,
+          duration: parsed.data.duration,
+        });
+      }
+      await createNotification({
+        profileId: tp.id,
+        type: "ban_received",
+        title: `Hesabın ${durationText} banlandı`,
+        body: parsed.data.reason,
+        link: "/destek",
+        payload: {
+          ban_id: data?.id,
+          duration: parsed.data.duration,
+        },
       });
     }
   }
@@ -295,20 +321,37 @@ export async function createWarningAction(
     .single();
   if (error) return { ok: false, error: error.message };
 
-  // Uyarilan oyuncu sitemize kayitliysa email bildirimi
+  // Uyarilan oyuncu sitemize kayitliysa email + in-app bildirim
   if (parsed.data.ggd_user_id) {
     const { data: targetProfile } = await supabase
       .from("profiles")
-      .select("email, nickname")
+      .select("id, email, nickname")
       .eq("ggd_user_id", parsed.data.ggd_user_id)
       .maybeSingle();
-    const tp = targetProfile as { email: string; nickname: string } | null;
-    if (tp?.email) {
-      await sendWarningNotificationEmail({
-        to: tp.email,
-        nickname: tp.nickname,
-        reason: parsed.data.reason,
-        severity: parsed.data.severity,
+    const tp = targetProfile as {
+      id: string;
+      email: string;
+      nickname: string;
+    } | null;
+    if (tp) {
+      if (tp.email) {
+        await sendWarningNotificationEmail({
+          to: tp.email,
+          nickname: tp.nickname,
+          reason: parsed.data.reason,
+          severity: parsed.data.severity,
+        });
+      }
+      await createNotification({
+        profileId: tp.id,
+        type: "warning_received",
+        title: "Bir uyarı aldın",
+        body: parsed.data.reason,
+        link: "/uyarilar",
+        payload: {
+          warning_id: data?.id,
+          severity: parsed.data.severity,
+        },
       });
     }
   }
@@ -394,6 +437,30 @@ export async function createAnnouncementAction(
     metadata: { title: parsed.data.title, pinned: parsed.data.pinned },
   });
 
+  // Tum onayli uyelere in-app duyuru bildirimi (toplu)
+  try {
+    const admin = await createAdminClient();
+    const { data: approvedProfiles } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("verification_status", "approved")
+      .neq("id", current.user.id);
+    const profileIds = (
+      (approvedProfiles ?? []) as { id: string }[]
+    ).map((p) => p.id);
+    if (profileIds.length > 0) {
+      await createNotificationsBulk(profileIds, {
+        type: "announcement",
+        title: `Yeni duyuru: ${parsed.data.title}`,
+        body: parsed.data.body.slice(0, 200),
+        link: "/duyurular",
+        payload: { announcement_id: data?.id, tag: parsed.data.tag },
+      });
+    }
+  } catch (err) {
+    console.error("announcement bulk notification failed:", err);
+  }
+
   revalidatePath("/duyurular");
   revalidatePath("/");
   revalidatePath("/admin");
@@ -454,16 +521,35 @@ export async function setVerificationStatusAction(formData: FormData) {
     metadata: { status: parsed.data.status },
   });
 
-  // Onaylanan veya reddedilen üyeye email gönder
+  // Onaylanan veya reddedilen üyeye email + in-app bildirim
   const p = profile as { email: string; nickname: string } | null;
   if (
-    p?.email &&
+    p &&
     (parsed.data.status === "approved" || parsed.data.status === "rejected")
   ) {
-    await sendVerificationEmail({
-      to: p.email,
-      nickname: p.nickname,
-      status: parsed.data.status,
+    if (p.email) {
+      await sendVerificationEmail({
+        to: p.email,
+        nickname: p.nickname,
+        status: parsed.data.status,
+      });
+    }
+    await createNotification({
+      profileId: parsed.data.user_id,
+      type:
+        parsed.data.status === "approved"
+          ? "verification_approved"
+          : "verification_rejected",
+      title:
+        parsed.data.status === "approved"
+          ? "Hesabın onaylandı 🎉"
+          : "Üyelik başvurun reddedildi",
+      body:
+        parsed.data.status === "approved"
+          ? "Artık tüm topluluk özelliklerini kullanabilirsin."
+          : "Detaylar için destek hattıyla iletişime geç.",
+      link:
+        parsed.data.status === "approved" ? "/topluluk" : "/destek",
     });
   }
 
@@ -529,11 +615,11 @@ export async function resolveReportAction(
 
   const supabase = await createClient();
 
-  // Şikayet sahibini ve hedef bilgisini al (email göndermek için)
+  // Şikayet sahibini ve hedef bilgisini al (email + in-app icin)
   const { data: reportData } = await supabase
     .from("reports")
     .select(
-      "target_nickname, reporter:profiles!reports_reporter_id_fkey(email, nickname)",
+      "target_nickname, reporter:profiles!reports_reporter_id_fkey(id, email, nickname)",
     )
     .eq("id", parsed.data.report_id)
     .maybeSingle();
@@ -558,18 +644,38 @@ export async function resolveReportAction(
     metadata: { resolution_note: parsed.data.resolution_note },
   });
 
-  // Şikayet sahibine email gönder
+  // Şikayet sahibine email + in-app bildirim
   const r = reportData as unknown as {
     target_nickname: string;
-    reporter: { email: string; nickname: string } | null;
+    reporter: { id: string; email: string; nickname: string } | null;
   } | null;
-  if (r?.reporter?.email) {
-    await sendReportResolvedEmail({
-      to: r.reporter.email,
-      reporterNickname: r.reporter.nickname,
-      targetNickname: r.target_nickname,
-      status: parsed.data.status,
-      note: parsed.data.resolution_note ?? null,
+  if (r?.reporter) {
+    if (r.reporter.email) {
+      await sendReportResolvedEmail({
+        to: r.reporter.email,
+        reporterNickname: r.reporter.nickname,
+        targetNickname: r.target_nickname,
+        status: parsed.data.status,
+        note: parsed.data.resolution_note ?? null,
+      });
+    }
+    const statusText = {
+      resolved: "haklı bulundu",
+      rejected: "reddedildi",
+      investigating: "inceleniyor",
+    }[parsed.data.status];
+    await createNotification({
+      profileId: r.reporter.id,
+      type: "report_resolved",
+      title: `Şikayetin ${statusText}`,
+      body: `${r.target_nickname} hakkındaki şikayetin sonuçlandı.${
+        parsed.data.resolution_note ? ` Not: ${parsed.data.resolution_note}` : ""
+      }`,
+      link: "/profil/sikayetlerim",
+      payload: {
+        report_id: parsed.data.report_id,
+        status: parsed.data.status,
+      },
     });
   }
 

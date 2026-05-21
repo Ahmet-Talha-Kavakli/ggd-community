@@ -7,6 +7,10 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SoundEffects } from "@/components/sound-effects";
 import { CookieConsent } from "@/components/cookie-consent";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import {
+  getUnreadCount,
+  getRecentNotifications,
+} from "@/lib/notifications";
 import { SITE } from "@/config/site";
 
 // Layout auth-aware (getCurrentUser cookie okur), child sayfalar ISR yapsa bile
@@ -70,6 +74,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const current = await getCurrentUser();
+  const [unreadCount, recentNotifications] = current
+    ? await Promise.all([
+        getUnreadCount(current.user.id),
+        getRecentNotifications(current.user.id, 10),
+      ])
+    : [0, []];
 
   return (
     <ClerkProvider
@@ -96,6 +106,18 @@ export default async function RootLayout({
                   }
                 : null
             }
+            notifications={{
+              unreadCount,
+              items: recentNotifications.map((n) => ({
+                id: n.id,
+                type: n.type,
+                title: n.title,
+                body: n.body,
+                link: n.link,
+                read_at: n.read_at,
+                created_at: n.created_at,
+              })),
+            }}
           />
           <main className="flex-1 flex flex-col">{children}</main>
           <SiteFooter />

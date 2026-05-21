@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireApprovedMember } from "@/lib/auth/require-admin";
 import { analyzeReport } from "@/lib/ai/analyze-report";
 import { sendReportReceivedEmail } from "@/lib/email";
+import { createNotification } from "@/lib/notifications";
 import type { AdminActionState } from "./admin-types";
 
 const MAX_FILES = 5;
@@ -166,6 +167,16 @@ export async function createReportAction(
       console.error("report received email failed:", err),
     );
   }
+
+  // Raporcuya in-app bildirim
+  await createNotification({
+    profileId: current.user.id,
+    type: "report_received",
+    title: `Şikayetin alındı (#${reportId})`,
+    body: `${parsed.data.target_nickname} hakkındaki şikayetin yönetime iletildi.`,
+    link: "/profil/sikayetlerim",
+    payload: { report_id: reportId },
+  });
 
   revalidatePath("/admin/sikayetler");
   revalidatePath("/profil/sikayetlerim");

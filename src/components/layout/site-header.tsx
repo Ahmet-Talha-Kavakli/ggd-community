@@ -6,6 +6,10 @@ import { usePathname } from "next/navigation";
 import { List, X, Shield } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/auth/user-menu";
+import {
+  NotificationBell,
+  type NotificationItem,
+} from "@/components/notifications/notification-bell";
 import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 
@@ -30,9 +34,13 @@ interface SiteHeaderProps {
     avatarUrl: string;
     isAdmin: boolean;
   } | null;
+  notifications?: {
+    unreadCount: number;
+    items: NotificationItem[];
+  };
 }
 
-export function SiteHeader({ user }: SiteHeaderProps) {
+export function SiteHeader({ user, notifications }: SiteHeaderProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -65,6 +73,12 @@ export function SiteHeader({ user }: SiteHeaderProps) {
         </nav>
 
         <div className="hidden xl:flex items-center gap-2 shrink-0 justify-self-end">
+          {user && notifications && (
+            <NotificationBell
+              unreadCount={notifications.unreadCount}
+              items={notifications.items}
+            />
+          )}
           {user ? (
             <UserMenu {...user} />
           ) : (
