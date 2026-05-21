@@ -5,6 +5,7 @@ import "./globals.css";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SoundEffects } from "@/components/sound-effects";
+import { CookieConsent } from "@/components/cookie-consent";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { SITE } from "@/config/site";
 
@@ -99,6 +100,7 @@ export default async function RootLayout({
           <main className="flex-1 flex flex-col">{children}</main>
           <SiteFooter />
           <SoundEffects />
+          <CookieConsent />
         </body>
       </html>
     </ClerkProvider>
