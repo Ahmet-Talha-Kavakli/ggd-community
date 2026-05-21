@@ -49,7 +49,7 @@ export function PageHero({
               )}
               {children && <div className="mt-7">{children}</div>}
             </div>
-            <div className="animate-scale-in stagger-2 relative">
+            <div className="animate-scale-in stagger-2 relative max-w-xs sm:max-w-sm md:max-w-md lg:max-w-none mx-auto lg:mx-0 w-full">
               <div className="absolute -inset-4 bg-brand-500/10 blur-3xl rounded-full" />
               <div className="relative overflow-hidden rounded-3xl border border-brand-200/40 shadow-card">
                 {image.videoSrc ? (

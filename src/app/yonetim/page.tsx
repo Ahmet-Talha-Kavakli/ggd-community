@@ -135,7 +135,7 @@ export default async function YonetimPage() {
           })}
         </div>
 
-        <div className="mt-14 max-w-3xl rounded-2xl border border-ink-200/70 p-7 bg-ink-50">
+        <div className="mt-14 max-w-3xl rounded-2xl border border-ink-900 p-7 bg-ink-50">
           <h3 className="font-semibold text-ink-900 mb-2">
             Moderatör başvurusu
           </h3>

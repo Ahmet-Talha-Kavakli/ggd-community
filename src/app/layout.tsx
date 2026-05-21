@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { AnimatedBlobBg } from "@/components/layout/animated-blob-bg";
 import { SoundEffects } from "@/components/sound-effects";
 import { CookieConsent } from "@/components/cookie-consent";
 import { getCurrentUser } from "@/lib/auth/current-user";
@@ -11,6 +12,8 @@ import {
   getUnreadCount,
   getRecentNotifications,
 } from "@/lib/notifications";
+import { createAdminClient } from "@/lib/supabase/server";
+import type { RoomCode } from "@/lib/supabase/types";
 import { SITE } from "@/config/site";
 
 // Layout auth-aware (getCurrentUser cookie okur), child sayfalar ISR yapsa bile
@@ -110,6 +113,22 @@ export default async function RootLayout({
       ])
     : [0, []];
 
+  // Aktif lobi oda kodu — varsa header'da chip olarak gosterilir
+  let activeRoomCode: string | null = null;
+  try {
+    const adminSb = await createAdminClient();
+    const { data } = await adminSb
+      .from("room_code")
+      .select("code")
+      .eq("id", 1)
+      .single();
+    const room = data as Pick<RoomCode, "code"> | null;
+    const trimmed = room?.code?.trim();
+    if (trimmed) activeRoomCode = trimmed;
+  } catch {
+    // sessiz gec — Supabase down olsa bile site cikar
+  }
+
   return (
     <ClerkProvider
       appearance={{
@@ -167,6 +186,7 @@ export default async function RootLayout({
           />
         </head>
         <body className="min-h-full flex flex-col text-ink-900">
+          <AnimatedBlobBg />
           <SiteHeader
             user={
               current
@@ -190,6 +210,7 @@ export default async function RootLayout({
                 created_at: n.created_at,
               })),
             }}
+            activeRoomCode={activeRoomCode}
           />
           <main className="flex-1 flex flex-col">{children}</main>
           <SiteFooter />

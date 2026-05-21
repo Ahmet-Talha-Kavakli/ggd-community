@@ -57,41 +57,6 @@ export function SiteFooter() {
       />
 
       <div className="relative container-page py-12">
-        {/* Newsletter signup banner */}
-        <div className="rounded-2xl border border-brand-200/70 bg-white/80 backdrop-blur p-6 md:p-8 mb-10 shadow-sm">
-          <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-            <div className="max-w-md">
-              <h4 className="text-lg font-semibold text-ink-900">
-                Topluluk haberlerinden ilk sen haberdar ol
-              </h4>
-              <p className="mt-1 text-sm text-ink-600">
-                Haftada bir — duyurular, etkinlikler, çekilişler. Spam yok,
-                istediğinde abonelikten çık.
-              </p>
-            </div>
-            <form
-              action="#"
-              method="post"
-              className="flex gap-2 shrink-0 w-full md:w-auto"
-            >
-              <input
-                type="email"
-                name="email"
-                placeholder="ornek@email.com"
-                required
-                aria-label="Email adresi"
-                className="h-10 px-3 rounded-lg border border-ink-200 bg-white text-sm placeholder:text-ink-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/15 w-full md:w-64"
-              />
-              <button
-                type="submit"
-                className="h-10 px-5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium whitespace-nowrap transition-colors shadow-sm"
-              >
-                Abone Ol
-              </button>
-            </form>
-          </div>
-        </div>
-
         {/* Sosyal media chips */}
         <div className="flex flex-wrap gap-2.5 justify-center mb-10 pb-8 border-b border-brand-200/40">
           {SOCIAL.map((s) => (
@@ -113,8 +78,8 @@ export function SiteFooter() {
         </div>
 
         {/* Logo + columns */}
-        <div className="grid gap-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
-          <div>
+        <div className="grid gap-10 md:gap-12 grid-cols-2 sm:grid-cols-3 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+          <div className="col-span-2 sm:col-span-3 md:col-span-1">
             <Logo />
             <p className="mt-4 text-sm text-ink-600 max-w-sm leading-relaxed">
               {SITE.description}

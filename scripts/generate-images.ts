@@ -295,6 +295,21 @@ const TARGETS: Record<string, Target> = {
     height: 900,
     outPath: "public/goose-sanctuary.png",
   },
+  "red-zone": {
+    name: "Red Zone (Kirmizi Alan) — caged goose",
+    prompt:
+      "Minimalist editorial illustration of a single white goose standing " +
+      "behind soft vertical iron prison bars casting subtle shadow, the goose " +
+      "looking calm but isolated in profile, deep crimson and burgundy " +
+      "gradient background with subtle warm red tones, clean modern vector " +
+      "style, Apple advertising aesthetic, serious quarantine mood without " +
+      "being violent or scary, premium magazine quality, no text, no skulls, " +
+      "no weapons, generous negative space, square composition, centered " +
+      "subject, dignified isolation, dramatic but elegant",
+    width: 1200,
+    height: 1200,
+    outPath: "public/goose-red-zone.png",
+  },
   logo: {
     name: "App icon logo (square)",
     prompt:

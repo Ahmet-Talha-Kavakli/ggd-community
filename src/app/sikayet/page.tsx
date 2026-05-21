@@ -5,6 +5,7 @@ import { PageHero } from "@/components/layout/page-hero";
 import { ReportForm } from "./form";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { Button } from "@/components/ui/button";
+import { TONE_STYLES } from "@/lib/card-tones";
 
 export const metadata = { title: "Şikayet Et" };
 
@@ -22,57 +23,81 @@ export default async function SikayetPage() {
 
       <section className="container-page py-14">
         <div className="grid gap-6 lg:grid-cols-[2fr_1fr] max-w-5xl">
-          <Card>
-            <CardContent className="p-8">
-              {!current ? (
-                <NotLoggedIn />
-              ) : !current.isApproved ? (
-                <NotApproved />
-              ) : (
-                <ReportForm />
-              )}
-            </CardContent>
-          </Card>
+          {(() => {
+            const t = TONE_STYLES.brand;
+            return (
+              <div
+                className={`relative overflow-hidden rounded-2xl bg-white border border-ink-900 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] p-8 animate-fade-up`}
+                style={{ backgroundImage: t.texture }}
+              >
+                <div className="relative">
+                  {!current ? (
+                    <NotLoggedIn />
+                  ) : !current.isApproved ? (
+                    <NotApproved />
+                  ) : (
+                    <ReportForm />
+                  )}
+                </div>
+              </div>
+            );
+          })()}
 
           <aside className="space-y-4">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-start gap-3">
-                  <div className="grid h-9 w-9 place-items-center rounded-xl bg-warning-50 text-warning-600 shrink-0">
-                    <AlertTriangle className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-ink-900">
-                      Sahte şikayet yasaktır
-                    </h3>
-                    <p className="mt-1 text-sm text-ink-600 leading-relaxed">
-                      Asılsız veya kötü niyetli şikayetler sonucunda kendin
-                      uyarı/ban alabilirsin.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-start gap-3">
-                  <div className="grid h-9 w-9 place-items-center rounded-xl bg-brand-50 text-brand-700 shrink-0">
-                    <Info className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-ink-900">
-                      Süreç nasıl işler?
-                    </h3>
-                    <ol className="mt-2 space-y-1 text-sm text-ink-600 list-decimal list-inside">
-                      <li>Yönetim şikayeti inceler</li>
-                      <li>Gerekirse taraflarla konuşulur</li>
-                      <li>Karar 48 saatte verilir</li>
-                      <li>Sonuç sana bildirilir</li>
-                    </ol>
+            {(() => {
+              const t = TONE_STYLES.warning;
+              return (
+                <div
+                  className={`relative overflow-hidden rounded-2xl bg-white border border-ink-900 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300 p-6 animate-fade-up stagger-2`}
+                  style={{ backgroundImage: t.texture }}
+                >
+                  <div className="relative flex items-start gap-3">
+                    <div
+                      className={`grid h-9 w-9 place-items-center rounded-xl bg-linear-to-br ${t.iconBg} ring-1 ${t.iconRing} ${t.iconColor} shadow-sm shrink-0`}
+                    >
+                      <AlertTriangle className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-ink-900">
+                        Sahte şikayet yasaktır
+                      </h3>
+                      <p className="mt-1 text-sm text-ink-600 leading-relaxed">
+                        Asılsız veya kötü niyetli şikayetler sonucunda kendin
+                        uyarı/ban alabilirsin.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              );
+            })()}
+            {(() => {
+              const t = TONE_STYLES.info;
+              return (
+                <div
+                  className={`relative overflow-hidden rounded-2xl bg-white border border-ink-900 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300 p-6 animate-fade-up stagger-3`}
+                  style={{ backgroundImage: t.texture }}
+                >
+                  <div className="relative flex items-start gap-3">
+                    <div
+                      className={`grid h-9 w-9 place-items-center rounded-xl bg-linear-to-br ${t.iconBg} ring-1 ${t.iconRing} ${t.iconColor} shadow-sm shrink-0`}
+                    >
+                      <Info className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-ink-900">
+                        Süreç nasıl işler?
+                      </h3>
+                      <ol className="mt-2 space-y-1 text-sm text-ink-600 list-decimal list-inside">
+                        <li>Yönetim şikayeti inceler</li>
+                        <li>Gerekirse taraflarla konuşulur</li>
+                        <li>Karar 48 saatte verilir</li>
+                        <li>Sonuç sana bildirilir</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </aside>
         </div>
       </section>

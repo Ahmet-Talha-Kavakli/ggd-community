@@ -52,9 +52,10 @@ export default async function KaraListePage() {
           </div>
           <Link
             href="/sorgu"
-            className="text-sm font-medium text-brand-700 hover:text-brand-800"
+            className="inline-flex items-center gap-1.5 rounded-full border border-ink-900 bg-white px-3.5 py-1.5 text-xs font-semibold text-ink-900 hover:bg-brand-50 hover:border-brand-700 hover:text-brand-700 transition-colors"
           >
-            Bir oyuncu sorgula →
+            Bir oyuncu sorgula
+            <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
 
@@ -209,7 +210,8 @@ function BanReasonsSection() {
           return (
             <div
               key={r.num}
-              className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl bg-white p-8 border border-ink-200/70 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
+              className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl bg-white/90 p-8 border border-ink-900 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
+              style={{ backgroundImage: t.texture }}
             >
               <div
                 className={`absolute -top-2 right-4 text-[88px] font-bold ${t.bigNumber} leading-none select-none pointer-events-none`}
@@ -217,12 +219,12 @@ function BanReasonsSection() {
                 {r.num}
               </div>
 
-              <div className="relative h-44 w-full mb-6 -mx-2">
+              <div className="relative h-40 w-40 mx-auto mb-6 rounded-3xl overflow-hidden ring-1 ring-ink-200">
                 <Image
                   src={r.image}
                   alt={r.alt}
                   fill
-                  className="object-contain"
+                  className="object-cover"
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
               </div>

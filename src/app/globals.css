@@ -66,47 +66,84 @@
 }
 
 html {
-  /* AP6 Aurora + AP9 Topographic karışım — tüm sayfada (overscroll dahil) */
-  background-color: #ffffff;
-  background-image:
-    /* Topographic izoton hatlar */
-    repeating-radial-gradient(
-      circle at 30% 30%,
-      transparent 0,
-      transparent 28px,
-      #04785750 28px,
-      #04785750 29px
-    ),
-    repeating-radial-gradient(
-      circle at 70% 70%,
-      transparent 0,
-      transparent 32px,
-      #04785750 32px,
-      #04785750 33px
-    ),
-    /* Aurora blob accents */
-      radial-gradient(
-        ellipse 70% 50% at 30% 25%,
-        #10b98150 0%,
-        transparent 55%
-      ),
-    radial-gradient(ellipse 70% 50% at 70% 75%, #06b6d450 0%, transparent 55%),
-    radial-gradient(ellipse 40% 30% at 80% 20%, #34d39940 0%, transparent 60%),
-    /* Linear gradient base */
-      linear-gradient(
-        135deg,
-        #10b98130 0%,
-        #06b6d445 25%,
-        #10b98135 50%,
-        #34d39945 75%,
-        #10b98130 100%
-      );
-  background-attachment: fixed;
-  background-size: cover;
+  background: linear-gradient(180deg, #fdfcfa 0%, #faf9f6 100%);
 }
 
+/* Blob shift — blob konumlari translate ile hareket eder. CSS variable
+   gerekmez, dogrudan transform animasyonu. AnimatedBlobBg component'i
+   tarafindan render edilen .blob-* div'lerine uygulanir. */
+@keyframes blob-float-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(10%, 15%) scale(1.1); }
+  50% { transform: translate(5%, 20%) scale(0.95); }
+  75% { transform: translate(-5%, 8%) scale(1.05); }
+}
+@keyframes blob-float-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-12%, 10%) scale(1.08); }
+  50% { transform: translate(-6%, 18%) scale(0.92); }
+  75% { transform: translate(8%, 5%) scale(1.1); }
+}
+@keyframes blob-float-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(12%, -12%) scale(0.95); }
+  50% { transform: translate(-8%, -6%) scale(1.12); }
+  75% { transform: translate(5%, -15%) scale(1); }
+}
+@keyframes blob-float-4 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(8%, 8%) scale(1.1); }
+  50% { transform: translate(15%, -5%) scale(0.9); }
+  75% { transform: translate(3%, -10%) scale(1.06); }
+}
+@keyframes blob-float-5 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(8%, -8%) scale(1.15); }
+  66% { transform: translate(-10%, 6%) scale(0.88); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blob-1, .blob-2, .blob-3, .blob-4, .blob-5,
+  [style*="grid-forward"] {
+    animation: none !important;
+  }
+}
+
+/* Mockup BG animasyonlari */
+@keyframes aurora-slide {
+  0%, 100% { transform: translateX(-10%) translateY(0); }
+  50% { transform: translateX(10%) translateY(-5%); }
+}
+@keyframes mesh-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes diagonal-drift {
+  from { background-position: 0 0; }
+  to { background-position: 60px 60px; }
+}
+@keyframes beam-pulse {
+  0%, 100% { opacity: 0.4; transform: scaleY(1); }
+  50% { opacity: 0.8; transform: scaleY(1.1); }
+}
+@keyframes topo-breath {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.7; }
+}
+@keyframes conic-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Grid floor infinite forward scroll — kareler ileri/asagi dogru akar.
+   backgroundSize 44px oldugu icin tam bir grid karesi kayinca loop'lar. */
+@keyframes grid-forward {
+  from { background-position: 0 0; }
+  to { background-position: 0 44px; }
+}
+
+
 body {
-  background: transparent;
   color: var(--color-foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;

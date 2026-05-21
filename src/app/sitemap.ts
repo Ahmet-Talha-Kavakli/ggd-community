@@ -11,6 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/sorgu", priority: 0.9, changeFrequency: "daily" },
     { path: "/kara-liste", priority: 0.9, changeFrequency: "daily" },
     { path: "/uyarilar", priority: 0.9, changeFrequency: "daily" },
+    { path: "/kirmizi-alan", priority: 0.85, changeFrequency: "weekly" },
     { path: "/kurallar", priority: 0.7, changeFrequency: "monthly" },
     { path: "/yonetim", priority: 0.6, changeFrequency: "weekly" },
     { path: "/duyurular", priority: 0.8, changeFrequency: "daily" },

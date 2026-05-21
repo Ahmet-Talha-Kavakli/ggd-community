@@ -38,7 +38,7 @@ export default async function AdminLayout({
       <div className="container-page py-10">
         <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
           <aside className="lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-2xl border border-ink-200/70 bg-white p-2 shadow-soft">
+            <div className="rounded-2xl border border-ink-900 bg-white p-2 shadow-soft">
               <nav className="flex flex-col gap-0.5">
                 {SIDEBAR.map((item) => (
                   <Link

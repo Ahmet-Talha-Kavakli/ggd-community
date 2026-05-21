@@ -13,7 +13,12 @@ import {
 import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 
-type NavLink = { href: string; label: string; description?: string };
+type NavLink = {
+  href: string;
+  label: string;
+  description?: string;
+  tone?: "danger";
+};
 type NavItem =
   | { href: string; label: string }
   | { label: string; items: NavLink[] };
@@ -37,6 +42,12 @@ const NAV: NavItem[] = [
         href: "/uyarilar",
         label: "Uyarılar",
         description: "Bu hafta uyarı alan oyuncular",
+      },
+      {
+        href: "/kirmizi-alan",
+        label: "Kırmızı Alan",
+        description: "Hiçbir lobiye girmemesi gerekenler",
+        tone: "danger",
       },
     ],
   },
@@ -98,9 +109,14 @@ interface SiteHeaderProps {
     unreadCount: number;
     items: NotificationItem[];
   };
+  activeRoomCode?: string | null;
 }
 
-export function SiteHeader({ user, notifications }: SiteHeaderProps) {
+export function SiteHeader({
+  user,
+  notifications,
+  activeRoomCode,
+}: SiteHeaderProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -109,6 +125,20 @@ export function SiteHeader({ user, notifications }: SiteHeaderProps) {
       <div className="container-page flex items-center justify-between h-16 gap-4">
         <div className="flex items-center gap-6">
           <Logo />
+
+          {activeRoomCode && (
+            <Link
+              href="/"
+              className="hidden md:inline-flex items-center gap-2 rounded-full border border-brand-300 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 hover:bg-brand-100 transition-colors"
+              aria-label={`Aktif lobi: ${activeRoomCode}`}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-500 animate-pulse" />
+              <span className="uppercase tracking-wider">Aktif lobi</span>
+              <span className="font-mono tracking-[0.15em] text-brand-800">
+                {activeRoomCode}
+              </span>
+            </Link>
+          )}
 
           <nav className="hidden lg:flex items-center gap-1">
             {NAV.map((item) => {
@@ -226,6 +256,7 @@ export function SiteHeader({ user, notifications }: SiteHeaderProps) {
                   </p>
                   {item.items.map((link) => {
                     const active = pathname.startsWith(link.href);
+                    const isDanger = link.tone === "danger";
                     return (
                       <Link
                         key={link.href}
@@ -233,9 +264,13 @@ export function SiteHeader({ user, notifications }: SiteHeaderProps) {
                         onClick={() => setOpen(false)}
                         className={cn(
                           "px-3 py-2 text-sm rounded-lg",
-                          active
-                            ? "text-brand-700 bg-brand-50 font-medium"
-                            : "text-ink-700 hover:bg-ink-100",
+                          isDanger
+                            ? active
+                              ? "text-danger-700 bg-danger-50 font-medium"
+                              : "text-danger-700 hover:bg-danger-50"
+                            : active
+                              ? "text-brand-700 bg-brand-50 font-medium"
+                              : "text-ink-700 hover:bg-ink-100",
                         )}
                       >
                         {link.label}
@@ -369,6 +404,7 @@ function NavDropdown({
             <nav className="p-1.5" role="menu">
               {items.map((item) => {
                 const itemActive = pathname.startsWith(item.href);
+                const isDanger = item.tone === "danger";
                 return (
                   <Link
                     key={item.href}
@@ -377,21 +413,34 @@ function NavDropdown({
                     role="menuitem"
                     className={cn(
                       "block rounded-xl px-3 py-2.5 transition-colors",
-                      itemActive
-                        ? "bg-brand-50"
-                        : "hover:bg-ink-50",
+                      isDanger
+                        ? itemActive
+                          ? "bg-danger-50"
+                          : "hover:bg-danger-50/60"
+                        : itemActive
+                          ? "bg-brand-50"
+                          : "hover:bg-ink-50",
                     )}
                   >
                     <p
                       className={cn(
                         "text-sm font-medium",
-                        itemActive ? "text-brand-700" : "text-ink-900",
+                        isDanger
+                          ? "text-danger-700"
+                          : itemActive
+                            ? "text-brand-700"
+                            : "text-ink-900",
                       )}
                     >
                       {item.label}
                     </p>
                     {item.description && (
-                      <p className="mt-0.5 text-xs text-ink-500 leading-relaxed">
+                      <p
+                        className={cn(
+                          "mt-0.5 text-xs leading-relaxed",
+                          isDanger ? "text-danger-600/80" : "text-ink-500",
+                        )}
+                      >
                         {item.description}
                       </p>
                     )}

@@ -166,7 +166,7 @@ export function ChatRoom({
   }
 
   return (
-    <div className="rounded-2xl border border-ink-200/70 bg-white shadow-card overflow-hidden flex flex-col h-[70vh] min-h-[500px]">
+    <div className="rounded-2xl border border-ink-900 bg-white shadow-card overflow-hidden flex flex-col h-[70vh] min-h-[500px]">
       <div
         ref={scrollerRef}
         className="flex-1 overflow-y-auto p-5 flex flex-col gap-4"

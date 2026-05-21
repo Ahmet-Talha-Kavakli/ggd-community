@@ -106,10 +106,10 @@ export async function PublicStatsWidget() {
         </div>
         <Link
           href="/istatistikler"
-          className="hidden md:inline-flex items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-800"
+          className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-ink-900 bg-white px-3.5 py-1.5 text-xs font-semibold text-ink-900 hover:bg-brand-50 hover:border-brand-700 hover:text-brand-700 transition-colors"
         >
           Tüm istatistikler
-          <ArrowUpRight size={14} weight="bold" />
+          <ArrowUpRight size={12} weight="bold" />
         </Link>
       </div>
 
@@ -123,7 +123,8 @@ export async function PublicStatsWidget() {
               className={`group animate-fade-up stagger-${Math.min(i + 1, 6)}`}
             >
               <div
-                className={`relative h-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border border-ink-200/70 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
+                className={`relative h-full bg-white rounded-2xl p-5 border border-ink-900 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
+                style={{ backgroundImage: t.texture }}
               >
                 <div
                   aria-hidden

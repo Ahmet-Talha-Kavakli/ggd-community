@@ -207,14 +207,45 @@ export interface EventParticipant {
   joined_at: string;
 }
 
+export type SupportCategory =
+  | "ban_appeal"
+  | "account_approval"
+  | "account_issue"
+  | "bug_report"
+  | "general";
+
 export interface SupportTicket {
   id: number;
   user_id: string | null;
   contact_email: string | null;
   subject: string;
   body: string;
+  category: SupportCategory;
   status: "open" | "in_progress" | "resolved" | "closed";
   handled_by: string | null;
+  created_at: string;
+}
+
+export interface SupportAttachment {
+  id: number;
+  ticket_id: number;
+  storage_path: string;
+  media_type: "image" | "video";
+  file_size_bytes: number | null;
+  created_at: string;
+}
+
+export interface RedZoneEntry {
+  id: number;
+  ggd_user_id: string | null;
+  nickname: string;
+  main_name: string | null;
+  reason: string;
+  description: string | null;
+  source: string | null;
+  evidence_url: string | null;
+  added_by: string | null;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -241,6 +272,8 @@ export type Database = {
       room_code: TableShape<RoomCode>;
       audit_log: TableShape<AuditLog>;
       support_tickets: TableShape<SupportTicket>;
+      support_attachments: TableShape<SupportAttachment>;
+      red_zone: TableShape<RedZoneEntry>;
       events: TableShape<Event>;
       event_participants: TableShape<EventParticipant>;
     };

@@ -51,6 +51,7 @@ type SearchHit =
 type BanLite = Pick<
   Ban,
   | "id"
+  | "ggd_user_id"
   | "reason"
   | "reason_tags"
   | "duration"
@@ -63,6 +64,7 @@ type BanLite = Pick<
 type WarningLite = Pick<
   Warning,
   | "id"
+  | "ggd_user_id"
   | "reason"
   | "reason_tags"
   | "severity"
@@ -537,160 +539,212 @@ async function DetailView({ ggdUserId }: { ggdUserId: string }) {
     };
   }
 
-  const toneStyles = {
-    danger: "bg-danger-50 text-danger-600 border-danger-500/20",
-    warning: "bg-warning-50 text-warning-600 border-warning-500/20",
-    brand: "bg-brand-50 text-brand-700 border-brand-200",
-    default: "bg-ink-100 text-ink-700 border-ink-200",
+  // ID-card icin tone bazli renkler — sicil kart estetigi
+  const idCardTone = {
+    danger: {
+      iconBg: "bg-danger-50",
+      iconBorder: "border-danger-200",
+      iconColor: "text-danger-600",
+      stamp: "text-danger-700",
+      accent: "text-danger-700",
+    },
+    warning: {
+      iconBg: "bg-warning-50",
+      iconBorder: "border-warning-200",
+      iconColor: "text-warning-600",
+      stamp: "text-warning-700",
+      accent: "text-warning-700",
+    },
+    brand: {
+      iconBg: "bg-brand-50",
+      iconBorder: "border-brand-200",
+      iconColor: "text-brand-700",
+      stamp: "text-brand-700",
+      accent: "text-brand-700",
+    },
+    default: {
+      iconBg: "bg-ink-100",
+      iconBorder: "border-ink-200",
+      iconColor: "text-ink-700",
+      stamp: "text-ink-700",
+      accent: "text-ink-700",
+    },
   }[status.tone];
+
+  // En son ban/uyari kaydindan fallback metadata cek (kullanici sicilde
+  // bilgi girdiyse goster). Ban/uyari kayitlari target_nickname/main_name
+  // tutar, profile/player yoksa bunlardan beslenir.
+  const banFallback = bans[0];
+  const warnFallback = warnings[0];
+  const fallbackNick =
+    banFallback?.target_nickname ?? warnFallback?.target_nickname ?? null;
+  const fallbackMain =
+    banFallback?.target_main_name ?? warnFallback?.target_main_name ?? null;
+  const fallbackGgdId =
+    banFallback?.ggd_user_id ?? warnFallback?.ggd_user_id ?? null;
+
+  // Query saf numerik ise GGD ID kabul et, degilse nickname/main name kabul et.
+  const isQueryNumeric = /^\d+$/.test(query);
+
+  // GGD ID — once profile/player'dan, sonra ban/warning'den, sonra numerik
+  // query ise query'den, yoksa "—".
+  const resolvedGgdId =
+    profile?.ggd_user_id ??
+    player?.ggd_user_id ??
+    fallbackGgdId ??
+    (isQueryNumeric ? query : null);
+
+  // Oyun ici nick — profile/player yoksa ban/warning'den, son care numerik
+  // olmayan query (kullanici nick girdiyse).
+  const ingameNick =
+    profile?.nickname ??
+    player?.nickname ??
+    fallbackNick ??
+    (!isQueryNumeric ? query : null);
+
+  // Ana isim — profile/player'dan, sonra ban/warning'den.
+  const mainName =
+    profile?.ggd_main_name ?? player?.main_name ?? fallbackMain ?? null;
+
+  const level = profile?.ggd_level ?? player?.level ?? null;
+
+  // Eklenme/Kayit tarihi — profile/player varsa kendi tarihleri, yoksa ilk
+  // ban/warning tarihi (siciline ilk girdigi an).
+  const firstSeenAt = profile
+    ? profile.joined_at
+    : player
+      ? player.created_at
+      : (banFallback?.created_at ?? warnFallback?.created_at ?? null);
+
+  const idFields: { label: string; value: string; danger?: boolean }[] = [
+    { label: "Oyun içi nick", value: ingameNick ?? "—" },
+    { label: "Ana isim", value: mainName ?? "—" },
+    { label: "GGD Level", value: level != null ? `Lv. ${level}` : "—" },
+    {
+      label: "Kayıt durumu",
+      value: profile
+        ? "Üye"
+        : player
+          ? "Lobi oyuncusu"
+          : bans.length + warnings.length > 0
+            ? "Sicilli (kayıt yok)"
+            : "Kayıt yok",
+    },
+    {
+      label: profile ? "Katılım" : player ? "İlk kayıt" : "Sicile eklenme",
+      value: firstSeenAt ? formatDate(firstSeenAt) : "—",
+    },
+    {
+      label: "Aktif uyarı",
+      value: String(activeWarnings.length),
+      danger: activeWarnings.length > 0,
+    },
+  ];
+
+  // Sicil rozeti label'i — duruma gore kisa metin
+  const stampLabel =
+    status.tone === "danger"
+      ? "Banlı"
+      : status.tone === "warning"
+        ? "Uyarılı"
+        : status.tone === "brand"
+          ? "Üye"
+          : player
+            ? "Oyuncu"
+            : "Kayıtsız";
 
   return (
     <div className="mt-8 flex flex-col gap-5">
-      <Card className={toneStyles}>
-        <CardContent className="p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-5">
-          <div
-            className={`grid h-14 w-14 place-items-center rounded-2xl bg-white/60 ${
-              status.tone === "default" ? "text-ink-700" : ""
-            }`}
-          >
-            <status.Icon className="h-6 w-6" />
-          </div>
-          <div className="flex-1">
-            <p className="text-xs uppercase tracking-wider opacity-70">
-              Sorgu sonucu — {ggdUserId}
-            </p>
-            <h2 className="text-2xl font-bold tracking-tight">
-              {status.label}
-            </h2>
-            <p className="mt-1 text-sm opacity-90">{status.desc}</p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Kimlik kart — GooseCage Oyuncu Sicili (tek buyuk kart) */}
+      <div className="relative overflow-hidden rounded-2xl bg-white border-2 border-ink-900 shadow-card">
+        {/* Üst şerit */}
+        <div className="bg-linear-to-b from-ink-50 to-white px-2 py-1 border-b border-ink-900">
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-ink-400 text-center">
+            GooseCage · Oyuncu Sicili
+          </p>
+        </div>
 
-      {player && !profile && (
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2 mb-3">
-              <h3 className="font-semibold text-ink-900">Oyuncu bilgileri</h3>
-              <Badge variant="outline">Oyuncu</Badge>
+        <div className="flex flex-col sm:flex-row gap-6 p-6">
+          {/* Sol: ikon + sicil rozeti + GGD ID */}
+          <div className="flex sm:flex-col items-start sm:items-center gap-3 sm:gap-2 sm:shrink-0 sm:w-32">
+            <div
+              className={`grid h-20 w-20 place-items-center rounded-2xl ${idCardTone.iconBg} border-2 ${idCardTone.iconBorder}`}
+            >
+              <status.Icon className={`h-10 w-10 ${idCardTone.iconColor}`} />
             </div>
-            <dl className="grid gap-3 sm:grid-cols-2 text-sm">
-              <div>
-                <dt className="text-xs uppercase tracking-wider text-ink-500">
-                  Oyun içi nick
-                </dt>
-                <dd className="mt-0.5 text-ink-900 font-medium">
-                  {player.nickname}
-                </dd>
+            <div className="flex flex-col items-start sm:items-center gap-1">
+              <span
+                className={`text-[10px] font-bold uppercase tracking-wider ${idCardTone.stamp}`}
+              >
+                {stampLabel}
+              </span>
+              <div className="sm:text-center">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
+                  GGD ID
+                </p>
+                <p
+                  className={`font-mono text-xs font-semibold break-all ${
+                    resolvedGgdId ? "text-ink-900" : "text-ink-400"
+                  }`}
+                >
+                  {resolvedGgdId ?? "—"}
+                </p>
               </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wider text-ink-500">
-                  GGD ana ismi
-                </dt>
-                <dd className="mt-0.5 text-ink-900">
-                  {player.main_name ?? "—"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wider text-ink-500">
-                  GGD Level
-                </dt>
-                <dd className="mt-0.5 text-ink-900">
-                  {player.level != null ? (
-                    <span className="inline-flex items-center gap-1 font-mono">
-                      <span className="text-brand-700 font-bold">Lv.</span>
-                      {player.level}
-                    </span>
-                  ) : (
-                    "—"
-                  )}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wider text-ink-500">
-                  İlk kayıt
-                </dt>
-                <dd className="mt-0.5 text-ink-900">
-                  {formatDate(player.created_at)}
-                </dd>
-              </div>
-            </dl>
-          </CardContent>
-        </Card>
-      )}
-
-      {profile && (
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2 mb-3">
-              <h3 className="font-semibold text-ink-900">Üye bilgileri</h3>
-              <Badge variant="brand">Üye</Badge>
             </div>
-            <dl className="grid gap-3 sm:grid-cols-2 text-sm">
-              <div>
-                <dt className="text-xs uppercase tracking-wider text-ink-500">
-                  Site nick
-                </dt>
-                <dd className="mt-0.5 text-ink-900 font-medium">
-                  {profile.nickname}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wider text-ink-500">
-                  GGD ana ismi
-                </dt>
-                <dd className="mt-0.5 text-ink-900">
-                  {profile.ggd_main_name ?? "—"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wider text-ink-500">
-                  GGD Level
-                </dt>
-                <dd className="mt-0.5 text-ink-900">
-                  {profile.ggd_level != null ? (
-                    <span className="inline-flex items-center gap-1 font-mono">
-                      <span className="text-brand-700 font-bold">Lv.</span>
-                      {profile.ggd_level}
-                    </span>
-                  ) : (
-                    "—"
-                  )}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wider text-ink-500">
-                  Rol
-                </dt>
-                <dd className="mt-0.5 text-ink-900">{profile.role}</dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wider text-ink-500">
-                  Doğrulama
-                </dt>
-                <dd className="mt-0.5 text-ink-900">
-                  {profile.verification_status}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wider text-ink-500">
-                  Katılım
-                </dt>
-                <dd className="mt-0.5 text-ink-900">
-                  {formatDate(profile.joined_at)}
-                </dd>
-              </div>
-            </dl>
-          </CardContent>
-        </Card>
-      )}
+          </div>
 
-      {bans.length > 0 && (
-        <Card>
-          <CardContent className="p-6">
-            <h3 className="font-semibold text-ink-900 mb-3">
-              Ban geçmişi ({bans.length})
-            </h3>
+          {/* Sağ: bilgi grid + durum */}
+          <div className="flex-1 min-w-0">
+            <div className="mb-4 pb-4 border-b border-ink-200">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
+                Durum
+              </p>
+              <p
+                className={`text-xl font-bold ${
+                  status.tone === "danger"
+                    ? "text-danger-700"
+                    : status.tone === "warning"
+                      ? "text-warning-700"
+                      : status.tone === "brand"
+                        ? "text-brand-700"
+                        : "text-ink-900"
+                }`}
+              >
+                {status.label}
+              </p>
+              <p className="text-xs text-ink-500 mt-0.5">{status.desc}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+              {idFields.map((f) => (
+                <div key={f.label}>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
+                    {f.label}
+                  </p>
+                  <p
+                    className={`font-semibold ${
+                      f.danger ? "text-danger-700" : "text-ink-900"
+                    }`}
+                  >
+                    {f.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Ban gecmisi — sicil kartinin icinde alt bolum */}
+        {bans.length > 0 && (
+          <div className="border-t-2 border-ink-900 bg-ink-50/40 px-6 py-5">
+            <div className="flex items-baseline justify-between mb-3">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-ink-700">
+                Ban geçmişi
+              </h3>
+              <span className="text-xs font-semibold text-ink-500 tabular-nums">
+                {bans.length} kayıt
+              </span>
+            </div>
             <ul className="flex flex-col gap-3">
               {bans.map((b) => {
                 const isPermanent = b.duration === "permanent";
@@ -702,7 +756,7 @@ async function DetailView({ ggdUserId }: { ggdUserId: string }) {
                 return (
                   <li
                     key={b.id}
-                    className={`rounded-xl border border-ink-200 border-l-4 p-4 flex flex-col gap-1.5 ${ring}`}
+                    className={`rounded-xl border border-ink-200 border-l-4 bg-white p-4 flex flex-col gap-1.5 ${ring}`}
                   >
                     <div className="flex flex-wrap items-baseline gap-2 text-xs">
                       <span
@@ -738,9 +792,9 @@ async function DetailView({ ggdUserId }: { ggdUserId: string }) {
                 );
               })}
             </ul>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
+      </div>
 
       {warnings.length > 0 && (
         <Card>
@@ -930,7 +984,6 @@ function SearchMethodsSection() {
     desc: string;
     image: string;
     alt: string;
-    hint: string;
     tone: Tone;
   }[] = [
     {
@@ -939,7 +992,6 @@ function SearchMethodsSection() {
       desc: "Oyuncunun 9 haneli kimlik numarası. Oyun içi Settings → Account bölümünden alabilirsin. En kesin sonuç verir.",
       image: "/goose-search.png",
       alt: "Sorgulayan kaz",
-      hint: "örn. 123456789",
       tone: "brand",
     },
     {
@@ -948,7 +1000,6 @@ function SearchMethodsSection() {
       desc: "Oyuncunun gerçek/sabit ismi. GGD profilinde değişmez kalan tek alandır. Nick değişse bile bu sabit.",
       image: "/goose-thinking.png",
       alt: "Düşünen kaz",
-      hint: "örn. AhmetTalha",
       tone: "info",
     },
     {
@@ -957,7 +1008,6 @@ function SearchMethodsSection() {
       desc: "Oyuncunun lobide gözüken seçilebilir takma adı. Sık değiştirilebilir — birden fazla sonuç çıkabilir.",
       image: "/goose-curious.png",
       alt: "Meraklı kaz",
-      hint: "örn. ToxicHonk",
       tone: "neutral",
     },
   ];
@@ -983,7 +1033,8 @@ function SearchMethodsSection() {
           return (
             <div
               key={m.num}
-              className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl bg-white p-8 border border-ink-200/70 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
+              className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl bg-white/90 p-8 border border-ink-900 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
+              style={{ backgroundImage: t.texture }}
             >
               <div
                 className={`absolute -top-2 right-4 text-[88px] font-bold ${t.bigNumber} leading-none select-none pointer-events-none`}
@@ -991,12 +1042,12 @@ function SearchMethodsSection() {
                 {m.num}
               </div>
 
-              <div className="relative h-44 w-full mb-6 -mx-2">
+              <div className="relative h-40 w-40 mx-auto mb-6 rounded-3xl overflow-hidden ring-1 ring-ink-200">
                 <Image
                   src={m.image}
                   alt={m.alt}
                   fill
-                  className="object-contain"
+                  className="object-cover"
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
               </div>
@@ -1007,9 +1058,6 @@ function SearchMethodsSection() {
               <p className="relative mt-3 text-sm text-ink-600 leading-relaxed">
                 {m.desc}
               </p>
-              <div className="relative mt-4 inline-flex items-center text-xs font-mono text-ink-500 bg-ink-100 px-2.5 py-1 rounded-md">
-                {m.hint}
-              </div>
             </div>
           );
         })}
@@ -1060,7 +1108,7 @@ function StatusInfo({
     danger: "bg-danger-50 text-danger-600",
   }[tone];
   return (
-    <div className="rounded-2xl border border-ink-200/70 p-5">
+    <div className="rounded-2xl border border-ink-900 bg-white p-5 shadow-soft">
       <div className={`grid h-9 w-9 place-items-center rounded-xl ${styles}`}>
         <Icon className="h-4 w-4" />
       </div>

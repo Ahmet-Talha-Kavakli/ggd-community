@@ -6,6 +6,7 @@ import { PageHero } from "@/components/layout/page-hero";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 import type { Announcement } from "@/lib/supabase/types";
+import { TONE_STYLES } from "@/lib/card-tones";
 
 export const metadata = { title: "Duyurular" };
 export const revalidate = 60;
@@ -54,10 +55,15 @@ export default async function DuyurularPage() {
         )}
 
         <div className="grid gap-4 max-w-4xl">
-          {announcements.map((a) => (
-            <Card key={a.id} className={a.pinned ? "border-brand-300" : ""}>
-              <CardContent className="p-7">
-                <div className="flex flex-wrap items-center gap-2 mb-3">
+          {announcements.map((a, i) => {
+            const t = a.pinned ? TONE_STYLES.brand : TONE_STYLES.neutral;
+            return (
+              <div
+                key={a.id}
+                className={`animate-fade-up stagger-${Math.min(i + 1, 6)} relative overflow-hidden rounded-2xl bg-white border border-ink-900 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300 p-7`}
+                style={{ backgroundImage: t.texture }}
+              >
+                <div className="relative flex flex-wrap items-center gap-2 mb-3">
                   {a.pinned && (
                     <Badge variant="brand">
                       <Pin className="h-3 w-3" />
@@ -70,26 +76,36 @@ export default async function DuyurularPage() {
                     {formatDate(a.published_at)}
                   </span>
                 </div>
-                <h2 className="text-xl font-semibold tracking-tight text-ink-900">
+                <h2 className="relative text-xl font-semibold tracking-tight text-ink-900">
                   {a.title}
                 </h2>
-                <p className="mt-2 text-[15px] text-ink-600 leading-relaxed whitespace-pre-wrap">
+                <p className="relative mt-2 text-[15px] text-ink-600 leading-relaxed whitespace-pre-wrap">
                   {a.body}
                 </p>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            );
+          })}
         </div>
 
-        <div className="max-w-4xl mt-10 rounded-2xl border border-ink-200/70 bg-ink-50 p-6 flex items-center gap-4">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-ink-200 text-ink-700">
-            <Megaphone className="h-5 w-5" />
-          </div>
-          <p className="text-sm text-ink-600 leading-relaxed">
-            Önemli duyuruları kaçırmamak için topluluk üyesi ol — Discord
-            sunucumuza katılınca bildirimleri direkt cebine alırsın.
-          </p>
-        </div>
+        {(() => {
+          const t = TONE_STYLES.info;
+          return (
+            <div
+              className={`max-w-4xl mt-10 relative overflow-hidden rounded-2xl border border-ink-900 border-l-[3px] ${t.stripe} bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] p-6 flex items-center gap-4`}
+              style={{ backgroundImage: t.texture }}
+            >
+              <div
+                className={`relative grid h-10 w-10 place-items-center rounded-xl bg-linear-to-br ${t.iconBg} ring-1 ${t.iconRing} ${t.iconColor} shadow-sm shrink-0`}
+              >
+                <Megaphone className="h-5 w-5" />
+              </div>
+              <p className="relative text-sm text-ink-600 leading-relaxed">
+                Önemli duyuruları kaçırmamak için topluluk üyesi ol — Discord
+                sunucumuza katılınca bildirimleri direkt cebine alırsın.
+              </p>
+            </div>
+          );
+        })()}
       </section>
     </>
   );

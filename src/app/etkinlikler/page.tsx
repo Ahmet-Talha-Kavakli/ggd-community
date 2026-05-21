@@ -15,6 +15,7 @@ import { CtaCard } from "@/components/layout/cta-card";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateTime, relativeTime } from "@/lib/utils";
 import type { Event, EventStatus, EventType } from "@/lib/supabase/types";
+import { TONE_STYLES, type Tone } from "@/lib/card-tones";
 
 export const metadata = { title: "Etkinlikler" };
 export const revalidate = 60;
@@ -159,6 +160,21 @@ export default async function EtkinliklerPage() {
   );
 }
 
+function statusToTone(status: EventStatus): Tone {
+  switch (status) {
+    case "ongoing":
+      return "warning";
+    case "published":
+      return "brand";
+    case "cancelled":
+      return "danger";
+    case "completed":
+    case "draft":
+    default:
+      return "neutral";
+  }
+}
+
 function EventCard({
   event,
   count,
@@ -171,64 +187,63 @@ function EventCard({
   const TypeIcon = typeMeta.Icon;
   const isPast =
     event.status === "completed" || event.status === "cancelled";
+  const tone = statusToTone(event.status);
+  const t = TONE_STYLES[tone];
 
   return (
-    <Link href={`/etkinlikler/${event.id}`}>
-      <Card className="lift transition-all hover:shadow-card hover:border-brand-200 h-full">
-        <CardContent className="p-6 flex flex-col gap-3 h-full">
-          <div className="flex items-start gap-3">
-            <div
-              className={`grid h-10 w-10 place-items-center rounded-xl shrink-0 ${
-                isPast
-                  ? "bg-ink-100 text-ink-600"
-                  : "bg-brand-100 text-brand-700"
-              }`}
-            >
-              <TypeIcon size={20} weight="duotone" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <Badge variant={status.variant}>{status.label}</Badge>
-                <Badge variant="outline">{typeMeta.label}</Badge>
-              </div>
-              <h3 className="font-semibold text-ink-900 leading-snug">
-                {event.title}
-              </h3>
-            </div>
+    <Link href={`/etkinlikler/${event.id}`} className="group block h-full">
+      <div
+        className={`relative h-full overflow-hidden rounded-2xl bg-white border border-ink-900 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300 p-6 flex flex-col gap-3`}
+        style={{ backgroundImage: t.texture }}
+      >
+        <div className="relative flex items-start gap-3">
+          <div
+            className={`grid h-10 w-10 place-items-center rounded-xl shrink-0 bg-linear-to-br ${t.iconBg} ring-1 ${t.iconRing} ${t.iconColor} shadow-sm group-hover:scale-105 transition-transform duration-300`}
+          >
+            <TypeIcon size={20} weight="duotone" />
           </div>
-
-          {event.prize && (
-            <div className="rounded-xl bg-brand-50/60 border border-brand-100 px-3 py-2 text-sm">
-              <span className="text-xs text-brand-700 font-medium uppercase tracking-wider">
-                Ödül
-              </span>
-              <p className="text-ink-800 mt-0.5">{event.prize}</p>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <Badge variant={status.variant}>{status.label}</Badge>
+              <Badge variant="outline">{typeMeta.label}</Badge>
             </div>
-          )}
-
-          <p className="text-sm text-ink-600 line-clamp-2 leading-relaxed">
-            {event.description}
-          </p>
-
-          <div className="mt-auto pt-2 flex items-center justify-between text-xs text-ink-500">
-            <span className="inline-flex items-center gap-1.5">
-              <CalendarBlank size={12} weight="duotone" />
-              {isPast
-                ? `Bitti · ${relativeTime(event.starts_at)}`
-                : formatDateTime(event.starts_at)}
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Users size={12} weight="duotone" />
-              {count}
-              {event.max_participants ? ` / ${event.max_participants}` : ""}
-            </span>
+            <h3 className="font-semibold text-ink-900 leading-snug">
+              {event.title}
+            </h3>
           </div>
+        </div>
 
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-brand-700">
-            Detay <ArrowRight className="h-3 w-3" />
+        {event.prize && (
+          <div className="relative rounded-xl bg-white/60 border border-ink-200/60 px-3 py-2 text-sm backdrop-blur-sm">
+            <span className={`text-xs font-medium uppercase tracking-wider ${t.iconColor}`}>
+              Ödül
+            </span>
+            <p className="text-ink-800 mt-0.5">{event.prize}</p>
+          </div>
+        )}
+
+        <p className="relative text-sm text-ink-600 line-clamp-2 leading-relaxed">
+          {event.description}
+        </p>
+
+        <div className="relative mt-auto pt-2 flex items-center justify-between text-xs text-ink-500">
+          <span className="inline-flex items-center gap-1.5">
+            <CalendarBlank size={12} weight="duotone" />
+            {isPast
+              ? `Bitti · ${relativeTime(event.starts_at)}`
+              : formatDateTime(event.starts_at)}
           </span>
-        </CardContent>
-      </Card>
+          <span className="inline-flex items-center gap-1.5">
+            <Users size={12} weight="duotone" />
+            {count}
+            {event.max_participants ? ` / ${event.max_participants}` : ""}
+          </span>
+        </div>
+
+        <span className={`relative inline-flex items-center gap-1 text-xs font-medium ${t.iconColor} group-hover:gap-2 transition-all`}>
+          Detay <ArrowRight className="h-3 w-3" />
+        </span>
+      </div>
     </Link>
   );
 }

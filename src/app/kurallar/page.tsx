@@ -1,45 +1,68 @@
-import { CheckCircle2, XCircle, Scale, MessageSquare, Volume2, Skull, Sparkles } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Crown, Vote, Users, Skull, Volume2, Sparkles } from "lucide-react";
 import { PageHero } from "@/components/layout/page-hero";
 import { CtaCard } from "@/components/layout/cta-card";
+import { TONE_STYLES, type Tone } from "@/lib/card-tones";
 
 export const metadata = { title: "Lobi Kuralları" };
 
-const RULES = [
+// Lobi kurallari — tematik 5 kategori. Numaralar render sirasinda otomatik
+// uretilir; baska bir kategoriye madde tasidigin zaman ardisikliklik kendi
+// kendine korunur.
+const RULES: Array<{
+  icon: typeof Crown;
+  title: string;
+  tone: Tone;
+  items: string[];
+}> = [
   {
-    icon: MessageSquare,
-    title: "Saygı Çerçevesi",
+    icon: Crown,
+    tone: "info",
+    title: "Kanadalı & Ünlü Kuralları",
     items: [
-      { ok: true, text: "Yenilere karşı sabırlı ol, oyunu öğrenmelerine yardım et." },
-      { ok: false, text: "Hakaret, küfür, ırkçılık, cinsiyetçilik kesinlikle yasak." },
-      { ok: false, text: "Kişisel saldırı, taciz veya tehdit ban gerekçesidir." },
+      "Kanadalı ve Ünlü yalanı yasak.",
+      "Kanadalı veya Ünlüyseniz sizden oylamada 2 rol istenirse başka 2 rol vermek zorundasınız. Ünlü hiçbir şekilde ünlü olduğunu ne oylamada ne de oyun içinde belli edemez.",
+      "Ünlü yapılırken ölmediyse iki defa 'ölmedi' yazılacak, öldüyse de turunu yazmak zorunludur — aksi takdirde asılmayı göze alacaksınız. 5–7 kişi almadan ünlü yapılması kesinlikle yasaktır.",
+      "Oyun içinde ünlü ölünce ses çıkarmak, belli eden şeyler söylemek veya bir oyuncudan ünlü infosu sormak — masum, tarafsız ya da katil fark etmez — kesinlikle yasaktır.",
+      "Kanadalıyı reportlayan kişi her ne olursa olsun asılmak zorundadır.",
     ],
   },
   {
-    icon: Scale,
+    icon: Vote,
+    tone: "brand",
+    title: "Oylama & Sohbet Düzeni",
+    items: [
+      "Oylamada söz kesmek, insanları bastırmak, söz almadan konuşmak kesinlikle yasaktır.",
+      "Oylamada sizden iki rol istendiğinde vermek zorundasınız. Rollerden birisi veya daha fazlası tanınıyorsa, tanıyan herkes chatte safeleşecektir. Sadece kesici roller oyun içinde safeleşecektir.",
+      "Oylamada konuşma sırası: önce reportlayan, ardından varsa suçlanan, sonra chatte sırasıyla '1' yazarak söz hakkı alınır.",
+    ],
+  },
+  {
+    icon: Users,
+    tone: "warning",
     title: "Oyun İçi Davranış",
     items: [
-      { ok: true, text: "Rolünü oyna — Dodo'ysan dodola, Goose'sun ortağına ihanet etme." },
-      { ok: false, text: "Stream sniping (yayıncıyı izleyerek oynamak) yasak." },
-      { ok: false, text: "Takımına bilerek engel olmak (sabotaj) ban gerekçesidir." },
-    ],
-  },
-  {
-    icon: Volume2,
-    title: "Mikrofon ve Sohbet",
-    items: [
-      { ok: true, text: "Net konuş, mikrofon kalitesine dikkat et." },
-      { ok: false, text: "Müzik, ses efekti veya gürültü çalmak yasak." },
-      { ok: false, text: "Spam yazmak, ALL CAPS bağırmak hoş karşılanmaz." },
+      "Boş infolar için (bomba size geldi, güvercin tehlikesi, nişancı kovalıyor, biri kovalıyor vs.) zile basmak kesinlikle yasaktır.",
+      "Oyun içerisinde üç kişiden fazla gezmek, az kişi kaldıysa iki kişiden fazla gezmek kesinlikle yasaktır.",
+      "Tarafsızlar istediği tarafa oynayabilir; köylülere ya da katillere çalışacağım deyip yine de oynamamayı tercih edebilir. Taraf değiştirmekte tamamen özgürdürler.",
+      "Oyun içerisinde oyuncuları masumken ısrarla takip etmek, darlamak, sıkıştırmak kesinlikle yasaktır.",
+      "Masum kesici rollerin infosuz kesmesi kesinlikle yasaktır.",
+      "Pelikanın zile basması da, ceset raporlaması da serbesttir.",
     ],
   },
   {
     icon: Skull,
-    title: "Hile ve Suistimal",
+    tone: "danger",
+    title: "Kalıcı Ban Sebepleri",
     items: [
-      { ok: false, text: "Hile (cheat, mod) kullanan oyuncu KALICI ban alır." },
-      { ok: false, text: "Çoklu hesap (multi-account) ile ban atlatmak yasak." },
-      { ok: false, text: "Yönetimi kandırma veya sahte şikayet ban gerekçesidir." },
+      "Teaming yapmak — en ufak belirtinin olması halinde bile kalıcı olarak sunucularımızdan banlanacaksınız.",
+    ],
+  },
+  {
+    icon: Volume2,
+    tone: "danger",
+    title: "Ses ve Mikrofon",
+    items: [
+      "Oyun içerisinde veya lobide müzik açmak, soundpad veya yükseltici ile konuşmak kesinlikle yasaktır.",
     ],
   },
 ];
@@ -56,49 +79,81 @@ export default function KurallarPage() {
 
       <section className="container-page py-14">
         <div className="max-w-4xl">
-          <div className="rounded-2xl bg-brand-50 border border-brand-200 p-6 mb-10 flex gap-4">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-600 text-white shrink-0">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-brand-900">3 Uyarı Sistemi</h3>
-              <p className="mt-1 text-sm text-brand-800 leading-relaxed">
-                Kural ihlalinde önce uyarı alırsın. 3 uyarı biriktiğinde
-                otomatik olarak 30 günlük ban verilir. Ağır ihlallerde
-                doğrudan kalıcı ban uygulanır.
-              </p>
-            </div>
-          </div>
+          {(() => {
+            const info = TONE_STYLES.info;
+            return (
+              <div
+                className={`relative overflow-hidden rounded-2xl bg-white border border-ink-900 border-l-[3px] ${info.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] p-6 mb-10 flex gap-4`}
+                style={{ backgroundImage: info.texture }}
+              >
+                <div
+                  className={`relative grid h-10 w-10 place-items-center rounded-xl bg-linear-to-br ${info.iconBg} ring-1 ${info.iconRing} ${info.iconColor} shrink-0 shadow-sm`}
+                >
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div className="relative">
+                  <h3 className="font-semibold text-ink-900">3 Uyarı Sistemi</h3>
+                  <p className="mt-1 text-sm text-ink-600 leading-relaxed">
+                    Kural ihlalinde önce uyarı alırsın. 3 uyarı biriktiğinde
+                    otomatik olarak 30 günlük ban verilir. Ağır ihlallerde
+                    doğrudan kalıcı ban uygulanır.
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="grid gap-5">
-            {RULES.map((rule) => (
-              <Card key={rule.title}>
-                <CardContent className="p-6 md:p-8">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-ink-100 text-ink-900">
+            {(() => {
+              let counter = 0;
+              return RULES.map((rule, i) => {
+                const t = TONE_STYLES[rule.tone];
+                return (
+                <div
+                  key={rule.title}
+                  className={`animate-fade-up stagger-${Math.min(i + 1, 6)} relative overflow-hidden rounded-2xl bg-white border border-ink-900 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300 p-6 md:p-8`}
+                  style={{ backgroundImage: t.texture }}
+                >
+                  <div className="relative flex items-center gap-3 mb-5">
+                    <div
+                      className={`grid h-10 w-10 place-items-center rounded-xl bg-linear-to-br ${t.iconBg} ring-1 ${t.iconRing} ${t.iconColor} shadow-sm`}
+                    >
                       <rule.icon className="h-5 w-5" />
                     </div>
                     <h2 className="text-xl font-semibold tracking-tight text-ink-900">
                       {rule.title}
                     </h2>
                   </div>
-                  <ul className="grid gap-2.5">
-                    {rule.items.map((item, i) => (
-                      <li key={i} className="flex gap-2.5 items-start">
-                        {item.ok ? (
-                          <CheckCircle2 className="h-5 w-5 text-brand-600 shrink-0 mt-0.5" />
-                        ) : (
-                          <XCircle className="h-5 w-5 text-danger-500 shrink-0 mt-0.5" />
-                        )}
-                        <span className="text-[15px] text-ink-700 leading-relaxed">
-                          {item.text}
+                  <ul className="relative grid gap-3">
+                    {rule.items.map((item) => {
+                      counter += 1;
+                      const num = counter;
+                      return (
+                      <li key={num} className="flex gap-3 items-start">
+                        <span
+                          className={`grid h-6 w-6 place-items-center rounded-full bg-white/80 border ${
+                            rule.tone === "danger"
+                              ? "border-danger-200 text-danger-700"
+                              : rule.tone === "warning"
+                                ? "border-warning-200 text-warning-700"
+                                : rule.tone === "info"
+                                  ? "border-sky-200 text-sky-700"
+                                  : "border-brand-200 text-brand-700"
+                          } shrink-0 mt-0.5 text-[11px] font-bold tabular-nums`}
+                        >
+                          {num}
+                        </span>
+                        <span className="text-[15px] text-ink-700 leading-relaxed pt-0.5">
+                          {item}
                         </span>
                       </li>
-                    ))}
+                      );
+                    })}
                   </ul>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+                );
+              });
+            })()}
           </div>
         </div>
       </section>

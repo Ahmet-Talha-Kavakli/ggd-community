@@ -54,7 +54,7 @@ export default async function AuditLogPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="rounded-2xl border border-ink-200/70 bg-white overflow-hidden">
+        <div className="rounded-2xl border border-ink-900 bg-white overflow-hidden">
           <ul className="divide-y divide-ink-200/60">
             {logs.map((log) => {
               const meta = actionLabels[log.action] ?? {

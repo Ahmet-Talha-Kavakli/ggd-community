@@ -30,6 +30,7 @@ import type {
 export const revalidate = 30; // Anasayfa 30 sn cache (oda kodu, son üyeler için)
 
 import { TONE_STYLES, type Tone } from "@/lib/card-tones";
+import { LampCTA } from "@/components/home/lamp-cta";
 
 const FEATURES: {
   icon: typeof MagnifyingGlass;
@@ -139,12 +140,12 @@ export default async function HomePage() {
                 <span className="h-1.5 w-1.5 rounded-full bg-brand-500 animate-pulse" />
                 {SITE.name} · Lobi yönetim merkezi
               </span>
-              <h1 className="animate-fade-up stagger-1 text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-ink-900 leading-[1.02]">
+              <h1 className="animate-fade-up stagger-1 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-ink-900 leading-[1.05] sm:leading-[1.02]">
                 Goose Goose Duck için
                 <br />
                 <span className="text-brand-600">sağlıklı bir topluluk.</span>
               </h1>
-              <p className="animate-fade-up stagger-2 text-lg md:text-xl text-ink-500 leading-relaxed max-w-xl">
+              <p className="animate-fade-up stagger-2 text-base sm:text-lg md:text-xl text-ink-500 leading-relaxed max-w-xl">
                 Toksik oyuncuları engelle, lobi kuralları net olsun, oyuncular
                 birbirini şikayet edebilsin. Hepsi tek bir yerden.
               </p>
@@ -186,7 +187,7 @@ export default async function HomePage() {
 
       <section className="container-page -mt-8 md:-mt-12 relative z-10">
         <div className="grid gap-4 md:grid-cols-3">
-          <Card className="md:col-span-2 overflow-hidden animate-scale-in stagger-4">
+          <Card className="md:col-span-2 overflow-hidden animate-scale-in stagger-4 border-dashed border-2">
             <CardContent className="p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-6">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
@@ -320,18 +321,19 @@ export default async function HomePage() {
             return (
             <div
               key={step.num}
-              className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl bg-white p-8 border border-ink-200/70 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
+              className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl bg-white/90 p-8 border border-ink-900 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
+              style={{ backgroundImage: t.texture }}
             >
               <div className={`absolute -top-2 right-4 text-[88px] font-bold ${t.bigNumber} leading-none select-none pointer-events-none`}>
                 {step.num}
               </div>
 
-              <div className="relative h-44 w-full mb-6 -mx-2">
+              <div className="relative h-40 w-40 mx-auto mb-6 rounded-3xl overflow-hidden ring-1 ring-ink-200">
                 <Image
                   src={step.image}
                   alt={step.alt}
                   fill
-                  className="object-contain"
+                  className="object-cover"
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
               </div>
@@ -356,16 +358,17 @@ export default async function HomePage() {
             </h2>
             <Link
               href="/topluluk"
-              className="text-sm font-medium text-brand-700 hover:text-brand-800"
+              className="inline-flex items-center gap-1.5 rounded-full border border-ink-900 bg-white px-3.5 py-1.5 text-xs font-semibold text-ink-900 hover:bg-brand-50 hover:border-brand-700 hover:text-brand-700 transition-colors"
             >
-              Tümü →
+              Tümü
+              <ArrowRight size={12} weight="bold" />
             </Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {recentMembers.map((m, i) => (
               <div
                 key={m.id}
-                className={`animate-fade-up stagger-${Math.min(i + 1, 6)} rounded-2xl border border-ink-200/70 bg-white p-5 flex flex-col items-center text-center lift`}
+                className={`animate-fade-up stagger-${Math.min(i + 1, 6)} rounded-2xl border border-ink-900 bg-white p-5 flex flex-col items-center text-center lift`}
               >
                 <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-100 text-brand-700 font-bold text-lg">
                   {m.nickname.charAt(0).toUpperCase()}
@@ -390,41 +393,52 @@ export default async function HomePage() {
             </h2>
             <Link
               href="/duyurular"
-              className="text-sm font-medium text-brand-700 hover:text-brand-800"
+              className="inline-flex items-center gap-1.5 rounded-full border border-ink-900 bg-white px-3.5 py-1.5 text-xs font-semibold text-ink-900 hover:bg-brand-50 hover:border-brand-700 hover:text-brand-700 transition-colors"
             >
-              Tümü →
+              Tümü
+              <ArrowRight size={12} weight="bold" />
             </Link>
           </div>
-          <div className="grid gap-3 md:grid-cols-3">
-            {announcements.map((a, i) => (
-              <Link key={a.id} href="/duyurular" className="group">
-                <Card
-                  className={`animate-fade-up stagger-${Math.min(i + 1, 6)} h-full lift hover:border-brand-200 hover:shadow-card`}
+          <div className="grid gap-4 md:grid-cols-3">
+            {announcements.map((a, i) => {
+              const t = a.pinned ? TONE_STYLES.brand : TONE_STYLES.info;
+              return (
+              <Link
+                key={a.id}
+                href="/duyurular"
+                className={`group animate-fade-up stagger-${Math.min(i + 1, 6)}`}
+              >
+                <div
+                  className={`relative h-full overflow-hidden rounded-2xl bg-white border border-ink-900 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300 p-6`}
+                  style={{ backgroundImage: t.texture }}
                 >
-                  <CardContent className="p-6">
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                      {a.pinned && (
-                        <Badge variant="brand">
-                          <PushPin size={10} weight="fill" />
-                          Sabit
-                        </Badge>
-                      )}
-                      <Badge variant="outline">{a.tag}</Badge>
-                    </div>
-                    <h3 className="font-semibold text-ink-900 line-clamp-2">
-                      {a.title}
-                    </h3>
-                    <p className="mt-2 text-sm text-ink-500 line-clamp-3 leading-relaxed">
-                      {a.body}
-                    </p>
-                    <div className="mt-4 flex items-center gap-1 text-xs text-ink-400">
-                      <CalendarBlank size={12} weight="regular" />
-                      {formatDate(a.published_at)}
-                    </div>
-                  </CardContent>
-                </Card>
+                  <div
+                    aria-hidden
+                    className={`absolute top-0 right-0 w-28 h-28 bg-linear-to-br ${t.cornerGlow} to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}
+                  />
+                  <div className="relative flex flex-wrap items-center gap-2 mb-3">
+                    {a.pinned && (
+                      <Badge variant="brand">
+                        <PushPin size={10} weight="fill" />
+                        Sabit
+                      </Badge>
+                    )}
+                    <Badge variant="outline">{a.tag}</Badge>
+                  </div>
+                  <h3 className="relative font-semibold text-ink-900 line-clamp-2 leading-snug">
+                    {a.title}
+                  </h3>
+                  <p className="relative mt-2 text-sm text-ink-600 line-clamp-3 leading-relaxed">
+                    {a.body}
+                  </p>
+                  <div className="relative mt-4 flex items-center gap-1.5 text-xs text-ink-500">
+                    <CalendarBlank size={12} weight="duotone" />
+                    {formatDate(a.published_at)}
+                  </div>
+                </div>
               </Link>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}
@@ -453,7 +467,8 @@ export default async function HomePage() {
                 className={`group animate-fade-up stagger-${Math.min(i + 1, 6)}`}
               >
                 <div
-                  className={`relative h-full bg-white/90 backdrop-blur-sm rounded-2xl p-7 border border-ink-200/70 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
+                  className={`relative h-full bg-white rounded-2xl p-7 border border-ink-900 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
+                  style={{ backgroundImage: t.texture }}
                 >
                   <div
                     aria-hidden
@@ -482,47 +497,7 @@ export default async function HomePage() {
       </section>
 
       <section className="container-page pb-24">
-        <div className="rounded-3xl bg-linear-to-br from-brand-600 to-brand-700 p-10 md:p-16 text-white shadow-card relative overflow-hidden">
-          <div className="absolute inset-0 opacity-20 mix-blend-overlay [background:radial-gradient(80%_60%_at_50%_0%,#ffffff_0%,transparent_60%)]" />
-          <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-30 pointer-events-none hidden md:block">
-            <Image
-              src="/flying.png"
-              alt=""
-              fill
-              className="object-cover object-right mix-blend-screen"
-              aria-hidden
-            />
-          </div>
-          <div className="relative max-w-2xl">
-            <h3 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight">
-              Topluluğa katılmaya hazır mısın?
-            </h3>
-            <p className="mt-4 text-brand-50 text-lg">
-              Ücretsiz kayıt ol, kuralları benimse, oyuna keyifle dön.
-            </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/kayit">
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="bg-white text-brand-700 hover:bg-brand-50 shine"
-                >
-                  Kayıt Ol
-                  <ArrowRight size={18} weight="bold" />
-                </Button>
-              </Link>
-              <Link href="/kurallar">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-white/30 bg-white/10 text-white hover:bg-white/20"
-                >
-                  Önce kuralları oku
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
+        <LampCTA />
       </section>
     </>
   );
