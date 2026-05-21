@@ -132,8 +132,51 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="hero-wash">
-        <div className="container-page py-16 md:py-24 lg:py-28">
+      <section className="hero-wash relative overflow-hidden">
+        {/* Floating background cards — dekoratif, opacity hafif */}
+        <div
+          aria-hidden
+          className="hidden md:block pointer-events-none absolute inset-0 z-0"
+        >
+          <FloatingCard
+            position="top-[10%] left-[6%]"
+            rotation="rotate-[-7deg]"
+            icon={ShieldCheck}
+            title="HENZAH"
+            sub="Banlı · kalıcı"
+            tone="danger"
+            delay="0s"
+          />
+          <FloatingCard
+            position="top-[18%] right-[14%]"
+            rotation="rotate-6"
+            icon={Warning}
+            title="Leopar"
+            sub="2 aktif uyarı"
+            tone="warning"
+            delay="0.6s"
+          />
+          <FloatingCard
+            position="bottom-[18%] left-[10%]"
+            rotation="rotate-[-4deg]"
+            icon={Users}
+            title="Carnage"
+            sub="Kayıtlı üye"
+            tone="brand"
+            delay="1.2s"
+          />
+          <FloatingCard
+            position="bottom-[10%] right-[8%]"
+            rotation="rotate-[8deg]"
+            icon={ChatsCircle}
+            title="Yeni şikayet"
+            sub="3 kanıt foto"
+            tone="info"
+            delay="1.8s"
+          />
+        </div>
+
+        <div className="container-page py-16 md:py-24 lg:py-28 relative z-10">
           <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:items-center">
             <div className="flex flex-col gap-7">
               <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 w-fit">
@@ -500,5 +543,74 @@ export default async function HomePage() {
         <LampCTA />
       </section>
     </>
+  );
+}
+
+// Hero arka planinda floating dekoratif kart — yumusak yukari/asagi salinim
+// (CSS animation), opacity dusuk, kullanici dikkatini bozmaz.
+function FloatingCard({
+  icon: Icon,
+  title,
+  sub,
+  tone,
+  position,
+  rotation,
+  delay,
+}: {
+  icon: typeof ShieldCheck;
+  title: string;
+  sub: string;
+  tone: "danger" | "warning" | "brand" | "info";
+  position: string;
+  rotation: string;
+  delay: string;
+}) {
+  const styles = {
+    danger: {
+      border: "border-danger-200",
+      bg: "bg-danger-50",
+      iconColor: "text-danger-600",
+      subColor: "text-danger-700",
+    },
+    warning: {
+      border: "border-warning-200",
+      bg: "bg-warning-50",
+      iconColor: "text-warning-600",
+      subColor: "text-warning-700",
+    },
+    brand: {
+      border: "border-brand-200",
+      bg: "bg-brand-50",
+      iconColor: "text-brand-700",
+      subColor: "text-brand-700",
+    },
+    info: {
+      border: "border-sky-200",
+      bg: "bg-sky-50",
+      iconColor: "text-sky-600",
+      subColor: "text-sky-700",
+    },
+  }[tone];
+  // Outer: absolute pozisyon + animasyon (translateY ile)
+  // Inner: rotate + card icerigi — rotate animasyon ile cakismaz
+  return (
+    <div
+      className={`absolute ${position} animate-float-soft opacity-70`}
+      style={{ animationDelay: delay }}
+    >
+      <div
+        className={`${rotation} rounded-xl border ${styles.border} bg-white/90 backdrop-blur-sm shadow-lg px-3 py-2 w-44 flex items-center gap-2`}
+      >
+        <div
+          className={`grid h-8 w-8 place-items-center rounded-lg ${styles.bg} shrink-0`}
+        >
+          <Icon className={`h-4 w-4 ${styles.iconColor}`} />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-ink-900 truncate">{title}</p>
+          <p className={`text-[10px] ${styles.subColor} truncate`}>{sub}</p>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -142,6 +142,22 @@ html {
   to { background-position: 0 44px; }
 }
 
+/* Hero floating cards — outer'da translateY animasyonu, inner'da rotate.
+   Iki transform farkli element'te oldugu icin cakismaz. */
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float-soft {
+  animation: float-soft 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-soft {
+    animation: none !important;
+  }
+}
+
 
 body {
   color: var(--color-foreground);
