@@ -29,13 +29,22 @@ import type {
 
 export const revalidate = 30; // Anasayfa 30 sn cache (oda kodu, son üyeler için)
 
-const FEATURES = [
+import { TONE_STYLES, type Tone } from "@/lib/card-tones";
+
+const FEATURES: {
+  icon: typeof MagnifyingGlass;
+  title: string;
+  description: string;
+  href: string;
+  tone: Tone;
+}[] = [
   {
     icon: MagnifyingGlass,
     title: "Oyuncu Sorgu",
     description:
       "GGD User ID ile herhangi bir oyuncunun uyarı ve kara liste durumunu anında öğren.",
     href: "/sorgu",
+    tone: "brand",
   },
   {
     icon: ShieldCheck,
@@ -43,6 +52,7 @@ const FEATURES = [
     description:
       "Toksik oyuncuların listesi, gerekçeli ban kayıtları ve uyarı geçmişi.",
     href: "/kara-liste",
+    tone: "danger",
   },
   {
     icon: Warning,
@@ -50,6 +60,7 @@ const FEATURES = [
     description:
       "Kanıt yükleyerek (foto/video) oyuncuları yönetime şikayet et. Şeffaf süreç.",
     href: "/sikayet",
+    tone: "warning",
   },
   {
     icon: ChatsCircle,
@@ -57,6 +68,7 @@ const FEATURES = [
     description:
       "Kanallı yapı ile oyuncularla anlık sohbet et, lobi ara, deneyim paylaş.",
     href: "/topluluk",
+    tone: "info",
   },
   {
     icon: Megaphone,
@@ -64,6 +76,7 @@ const FEATURES = [
     description:
       "Yönetimden gelen güncel duyurular, kural değişiklikleri ve etkinlikler.",
     href: "/duyurular",
+    tone: "brand",
   },
   {
     icon: UserPlus,
@@ -71,6 +84,7 @@ const FEATURES = [
     description:
       "Topluluğun bir parçası ol, GGD Friend Code ile kayıt ol.",
     href: "/kayit",
+    tone: "info",
   },
 ];
 
@@ -274,34 +288,41 @@ export default async function HomePage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          {[
-            {
-              num: "01",
-              title: "Tanı",
-              desc: "GGD User ID, ana isim veya oyun içi nick ile oyuncunun geçmişini incele. Üyelik gerekmez, herkese açık.",
-              image: "/goose-search.png",
-              alt: "Sorgulayan kaz",
-            },
-            {
-              num: "02",
-              title: "Kanıtla bildir",
-              desc: "Foto / video kanıtla şikayet aç. AI ön analiz yapar, yönetim hızlıca inceleyip ban veya uyarı verir.",
-              image: "/goose-report.png",
-              alt: "Şikayet eden kaz",
-            },
-            {
-              num: "03",
-              title: "Sürünle dön",
-              desc: "Toksik oyuncular kara listeye girer, lobiler temizlenir. Sen sürünle keyifli oyununa geri dönersin.",
-              image: "/goose-sanctuary.png",
-              alt: "Sağlıklı topluluk",
-            },
-          ].map((step, i) => (
+          {(
+            [
+              {
+                num: "01",
+                title: "Tanı",
+                desc: "GGD User ID, ana isim veya oyun içi nick ile oyuncunun geçmişini incele. Üyelik gerekmez, herkese açık.",
+                image: "/goose-search.png",
+                alt: "Sorgulayan kaz",
+                tone: "info" as Tone,
+              },
+              {
+                num: "02",
+                title: "Kanıtla bildir",
+                desc: "Foto / video kanıtla şikayet aç. AI ön analiz yapar, yönetim hızlıca inceleyip ban veya uyarı verir.",
+                image: "/goose-report.png",
+                alt: "Şikayet eden kaz",
+                tone: "warning" as Tone,
+              },
+              {
+                num: "03",
+                title: "Sürünle dön",
+                desc: "Toksik oyuncular kara listeye girer, lobiler temizlenir. Sen sürünle keyifli oyununa geri dönersin.",
+                image: "/goose-sanctuary.png",
+                alt: "Sağlıklı topluluk",
+                tone: "brand" as Tone,
+              },
+            ] as const
+          ).map((step, i) => {
+            const t = TONE_STYLES[step.tone];
+            return (
             <div
               key={step.num}
-              className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl border border-ink-200/70 bg-white p-8 lift hover:shadow-float hover:border-brand-200 transition-all`}
+              className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl bg-white p-8 border border-ink-200/70 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
             >
-              <div className="absolute -top-2 right-4 text-[88px] font-bold text-brand-50 leading-none select-none pointer-events-none">
+              <div className={`absolute -top-2 right-4 text-[88px] font-bold ${t.bigNumber} leading-none select-none pointer-events-none`}>
                 {step.num}
               </div>
 
@@ -322,7 +343,8 @@ export default async function HomePage() {
                 {step.desc}
               </p>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -422,33 +444,40 @@ export default async function HomePage() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((f, i) => (
-            <Link
-              key={f.href}
-              href={f.href}
-              className={`group animate-fade-up stagger-${Math.min(i + 1, 6)}`}
-            >
-              <div className="relative h-full bg-white/90 backdrop-blur-sm rounded-2xl p-7 border border-ink-200/70 border-l-[3px] border-l-brand-500 shadow-[0_2px_8px_-2px_rgba(16,185,129,0.05)] hover:shadow-[0_12px_32px_-8px_rgba(16,185,129,0.20)] hover:-translate-y-0.5 transition-all duration-300">
+          {FEATURES.map((f, i) => {
+            const t = TONE_STYLES[f.tone];
+            return (
+              <Link
+                key={f.href}
+                href={f.href}
+                className={`group animate-fade-up stagger-${Math.min(i + 1, 6)}`}
+              >
                 <div
-                  aria-hidden
-                  className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-brand-100/40 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                />
-                <div className="relative inline-flex items-center justify-center h-14 w-14 rounded-full bg-linear-to-br from-brand-100 via-brand-50 to-white ring-1 ring-brand-200/50 shadow-sm group-hover:ring-brand-300 group-hover:shadow-md group-hover:scale-105 transition-all duration-300">
-                  <f.icon size={26} weight="duotone" className="text-brand-700" />
+                  className={`relative h-full bg-white/90 backdrop-blur-sm rounded-2xl p-7 border border-ink-200/70 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
+                >
+                  <div
+                    aria-hidden
+                    className={`absolute top-0 right-0 w-32 h-32 bg-linear-to-br ${t.cornerGlow} to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}
+                  />
+                  <div
+                    className={`relative inline-flex items-center justify-center h-14 w-14 rounded-full bg-linear-to-br ${t.iconBg} ring-1 ${t.iconRing} shadow-sm group-hover:scale-105 transition-all duration-300`}
+                  >
+                    <f.icon size={26} weight="duotone" className={t.iconColor} />
+                  </div>
+                  <h3 className="relative mt-5 text-lg font-semibold tracking-tight text-ink-900">
+                    {f.title}
+                  </h3>
+                  <p className="relative mt-2 text-sm text-ink-600 leading-relaxed">
+                    {f.description}
+                  </p>
+                  <span className="relative mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-brand-700 group-hover:gap-2.5 transition-all">
+                    Keşfet
+                    <ArrowRight size={14} weight="bold" />
+                  </span>
                 </div>
-                <h3 className="relative mt-5 text-lg font-semibold tracking-tight text-ink-900">
-                  {f.title}
-                </h3>
-                <p className="relative mt-2 text-sm text-ink-600 leading-relaxed">
-                  {f.description}
-                </p>
-                <span className="relative mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-brand-700 group-hover:gap-2.5 transition-all">
-                  Keşfet
-                  <ArrowRight size={14} weight="bold" />
-                </span>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </section>
 

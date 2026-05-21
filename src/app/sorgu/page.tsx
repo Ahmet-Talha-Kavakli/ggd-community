@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { TagChips } from "@/components/ui/tag-chips";
 import { PageHero } from "@/components/layout/page-hero";
 import { CtaCard } from "@/components/layout/cta-card";
+import { TONE_STYLES, type Tone } from "@/lib/card-tones";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 import type { Ban, Warning, Profile, Player } from "@/lib/supabase/types";
@@ -923,7 +924,15 @@ async function DetailView({ ggdUserId }: { ggdUserId: string }) {
 }
 
 function SearchMethodsSection() {
-  const methods = [
+  const methods: {
+    num: string;
+    title: string;
+    desc: string;
+    image: string;
+    alt: string;
+    hint: string;
+    tone: Tone;
+  }[] = [
     {
       num: "01",
       title: "GGD User ID",
@@ -931,6 +940,7 @@ function SearchMethodsSection() {
       image: "/goose-search.png",
       alt: "Sorgulayan kaz",
       hint: "örn. 123456789",
+      tone: "brand",
     },
     {
       num: "02",
@@ -939,6 +949,7 @@ function SearchMethodsSection() {
       image: "/goose-thinking.png",
       alt: "Düşünen kaz",
       hint: "örn. AhmetTalha",
+      tone: "info",
     },
     {
       num: "03",
@@ -947,6 +958,7 @@ function SearchMethodsSection() {
       image: "/goose-curious.png",
       alt: "Meraklı kaz",
       hint: "örn. ToxicHonk",
+      tone: "neutral",
     },
   ];
 
@@ -966,36 +978,41 @@ function SearchMethodsSection() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        {methods.map((m, i) => (
-          <div
-            key={m.num}
-            className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl border border-ink-200/70 bg-white p-8 lift hover:shadow-float hover:border-brand-200 transition-all`}
-          >
-            <div className="absolute -top-2 right-4 text-[88px] font-bold text-brand-50 leading-none select-none pointer-events-none">
-              {m.num}
-            </div>
+        {methods.map((m, i) => {
+          const t = TONE_STYLES[m.tone];
+          return (
+            <div
+              key={m.num}
+              className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl bg-white p-8 border border-ink-200/70 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
+            >
+              <div
+                className={`absolute -top-2 right-4 text-[88px] font-bold ${t.bigNumber} leading-none select-none pointer-events-none`}
+              >
+                {m.num}
+              </div>
 
-            <div className="relative h-44 w-full mb-6 -mx-2">
-              <Image
-                src={m.image}
-                alt={m.alt}
-                fill
-                className="object-contain"
-                sizes="(max-width: 768px) 100vw, 33vw"
-              />
-            </div>
+              <div className="relative h-44 w-full mb-6 -mx-2">
+                <Image
+                  src={m.image}
+                  alt={m.alt}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
+              </div>
 
-            <h3 className="relative text-xl font-semibold tracking-tight text-ink-900">
-              {m.title}
-            </h3>
-            <p className="relative mt-3 text-sm text-ink-600 leading-relaxed">
-              {m.desc}
-            </p>
-            <div className="relative mt-4 inline-flex items-center text-xs font-mono text-ink-500 bg-ink-100 px-2.5 py-1 rounded-md">
-              {m.hint}
+              <h3 className="relative text-xl font-semibold tracking-tight text-ink-900">
+                {m.title}
+              </h3>
+              <p className="relative mt-3 text-sm text-ink-600 leading-relaxed">
+                {m.desc}
+              </p>
+              <div className="relative mt-4 inline-flex items-center text-xs font-mono text-ink-500 bg-ink-100 px-2.5 py-1 rounded-md">
+                {m.hint}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

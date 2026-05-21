@@ -7,8 +7,8 @@ import {
   ChatsCircle,
   ArrowUpRight,
 } from "@phosphor-icons/react/dist/ssr";
-import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
+import { TONE_STYLES, type Tone } from "@/lib/card-tones";
 
 export async function PublicStatsWidget() {
   const supabase = await createClient();
@@ -43,13 +43,20 @@ export async function PublicStatsWidget() {
       .eq("is_active", true),
   ]);
 
-  const stats = [
+  const stats: {
+    icon: typeof Users;
+    label: string;
+    value: number;
+    hint: string;
+    tone: Tone;
+    href: string;
+  }[] = [
     {
       icon: Users,
       label: "Topluluk",
       value: totalMembers.count ?? 0,
       hint: "kayıtlı üye",
-      tone: "brand" as const,
+      tone: "brand",
       href: "/topluluk",
     },
     {
@@ -57,7 +64,7 @@ export async function PublicStatsWidget() {
       label: "Aktif ban",
       value: totalActiveBans.count ?? 0,
       hint: "şu an kara listede",
-      tone: "danger" as const,
+      tone: "danger",
       href: "/kara-liste",
     },
     {
@@ -65,7 +72,7 @@ export async function PublicStatsWidget() {
       label: "Bu hafta uyarı",
       value: weeklyWarnings.count ?? 0,
       hint: "son 7 günde",
-      tone: "warning" as const,
+      tone: "warning",
       href: "/uyarilar",
     },
     {
@@ -73,7 +80,7 @@ export async function PublicStatsWidget() {
       label: "Şikayet çözüm",
       value: weeklyResolved.count ?? 0,
       hint: "son 7 günde",
-      tone: "brand" as const,
+      tone: "info",
       href: "/sikayet",
     },
     {
@@ -81,7 +88,7 @@ export async function PublicStatsWidget() {
       label: "Bu hafta ban",
       value: weeklyBans.count ?? 0,
       hint: "son 7 günde",
-      tone: "danger" as const,
+      tone: "danger",
       href: "/kara-liste",
     },
   ];
@@ -106,35 +113,38 @@ export async function PublicStatsWidget() {
         </Link>
       </div>
 
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-        {stats.map((s, i) => (
-          <Link key={s.label} href={s.href}>
-            <Card
-              className={`animate-fade-up stagger-${Math.min(i + 1, 6)} lift hover:border-brand-200`}
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+        {stats.map((s, i) => {
+          const t = TONE_STYLES[s.tone];
+          return (
+            <Link
+              key={s.label}
+              href={s.href}
+              className={`group animate-fade-up stagger-${Math.min(i + 1, 6)}`}
             >
-              <CardContent className="p-5">
+              <div
+                className={`relative h-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border border-ink-200/70 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
+              >
                 <div
-                  className={`grid h-9 w-9 place-items-center rounded-xl ${
-                    s.tone === "brand"
-                      ? "bg-brand-50 text-brand-700"
-                      : s.tone === "danger"
-                        ? "bg-danger-50 text-danger-600"
-                        : "bg-warning-50 text-warning-600"
-                  }`}
+                  aria-hidden
+                  className={`absolute top-0 right-0 w-24 h-24 bg-linear-to-br ${t.cornerGlow} to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}
+                />
+                <div
+                  className={`relative inline-flex items-center justify-center h-10 w-10 rounded-full bg-linear-to-br ${t.iconBg} ring-1 ${t.iconRing} shadow-sm group-hover:scale-105 transition-transform duration-300`}
                 >
-                  <s.icon size={18} weight="duotone" />
+                  <s.icon size={20} weight="duotone" className={t.iconColor} />
                 </div>
-                <p className="mt-4 text-3xl font-bold tracking-tight text-ink-900 tabular-nums">
+                <p className="relative mt-4 text-3xl font-bold tracking-tight text-ink-900 tabular-nums">
                   {s.value}
                 </p>
-                <p className="mt-1 text-xs font-medium text-ink-700">
+                <p className="relative mt-1 text-xs font-medium text-ink-700">
                   {s.label}
                 </p>
-                <p className="text-xs text-ink-400">{s.hint}</p>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+                <p className="relative text-xs text-ink-400">{s.hint}</p>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );

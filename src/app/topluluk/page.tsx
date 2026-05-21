@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHero } from "@/components/layout/page-hero";
 import { CtaCard } from "@/components/layout/cta-card";
+import { TONE_STYLES, type Tone } from "@/lib/card-tones";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import type { Channel } from "@/lib/supabase/types";
@@ -157,13 +158,21 @@ export default async function ToplulukPage() {
 }
 
 function CommunityValuesSection() {
-  const values = [
+  const values: {
+    num: string;
+    title: string;
+    desc: string;
+    image: string;
+    alt: string;
+    tone: Tone;
+  }[] = [
     {
       num: "01",
       title: "Şeffaflık",
       desc: "Her ban gerekçeli, audit log herkese açık. Yönetim ne yaptığını gizlemez — topluluk kararları görünür.",
       image: "/goose-shield.png",
       alt: "Koruyucu kaz",
+      tone: "info",
     },
     {
       num: "02",
@@ -171,6 +180,7 @@ function CommunityValuesSection() {
       desc: "2-5 kişilik moderatör ekip. Her şikayet 48 saat içinde değerlendirilir, kanıtla beraber incelenir.",
       image: "/goose-thinking.png",
       alt: "Düşünen kaz",
+      tone: "brand",
     },
     {
       num: "03",
@@ -178,6 +188,7 @@ function CommunityValuesSection() {
       desc: "Türkçe konuşan, kuralları benimsemiş oyuncular. Yeni gelen rahat eder, eski gelen kuralı bilir.",
       image: "/goose-friendly.png",
       alt: "Arkadaş canlısı kaz",
+      tone: "warning",
     },
   ];
 
@@ -197,33 +208,38 @@ function CommunityValuesSection() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        {values.map((v, i) => (
-          <div
-            key={v.num}
-            className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl border border-ink-200/70 bg-white p-8 lift hover:shadow-float hover:border-brand-200 transition-all`}
-          >
-            <div className="absolute -top-2 right-4 text-[88px] font-bold text-brand-50 leading-none select-none pointer-events-none">
-              {v.num}
-            </div>
+        {values.map((v, i) => {
+          const t = TONE_STYLES[v.tone];
+          return (
+            <div
+              key={v.num}
+              className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl bg-white p-8 border border-ink-200/70 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
+            >
+              <div
+                className={`absolute -top-2 right-4 text-[88px] font-bold ${t.bigNumber} leading-none select-none pointer-events-none`}
+              >
+                {v.num}
+              </div>
 
-            <div className="relative h-44 w-full mb-6 -mx-2">
-              <Image
-                src={v.image}
-                alt={v.alt}
-                fill
-                className="object-contain"
-                sizes="(max-width: 768px) 100vw, 33vw"
-              />
-            </div>
+              <div className="relative h-44 w-full mb-6 -mx-2">
+                <Image
+                  src={v.image}
+                  alt={v.alt}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
+              </div>
 
-            <h3 className="relative text-xl font-semibold tracking-tight text-ink-900">
-              {v.title}
-            </h3>
-            <p className="relative mt-3 text-sm text-ink-600 leading-relaxed">
-              {v.desc}
-            </p>
-          </div>
-        ))}
+              <h3 className="relative text-xl font-semibold tracking-tight text-ink-900">
+                {v.title}
+              </h3>
+              <p className="relative mt-3 text-sm text-ink-600 leading-relaxed">
+                {v.desc}
+              </p>
+            </div>
+          );
+        })}
       </div>
     </section>
   );

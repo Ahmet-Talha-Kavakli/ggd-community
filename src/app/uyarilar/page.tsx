@@ -8,6 +8,7 @@ import { TagChips } from "@/components/ui/tag-chips";
 import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { PageHero } from "@/components/layout/page-hero";
 import { CtaCard } from "@/components/layout/cta-card";
+import { TONE_STYLES, type Tone } from "@/lib/card-tones";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 import type { Warning, Profile, WarningSeverity } from "@/lib/supabase/types";
@@ -147,14 +148,21 @@ export default async function UyarilarPage() {
 }
 
 function WarningSystemSection() {
-  const steps = [
+  const steps: {
+    num: string;
+    title: string;
+    desc: string;
+    image: string;
+    alt: string;
+    tone: Tone;
+  }[] = [
     {
       num: "01",
       title: "Düşük seviye",
       desc: "Hafif kural ihlali — örn. nadir küçük çaplı küfür, ufak troll. Sadece bilgilendirme amaçlı.",
       image: "/goose-curious.png",
       alt: "Meraklı kaz",
-      tone: "ink",
+      tone: "info",
     },
     {
       num: "02",
@@ -190,12 +198,14 @@ function WarningSystemSection() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        {steps.map((s, i) => (
+        {steps.map((s, i) => {
+          const t = TONE_STYLES[s.tone];
+          return (
           <div
             key={s.num}
-            className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl border border-ink-200/70 bg-white p-8 lift hover:shadow-float hover:border-warning-200 transition-all`}
+            className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl bg-white p-8 border border-ink-200/70 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
           >
-            <div className="absolute -top-2 right-4 text-[88px] font-bold text-warning-50 leading-none select-none pointer-events-none">
+            <div className={`absolute -top-2 right-4 text-[88px] font-bold ${t.bigNumber} leading-none select-none pointer-events-none`}>
               {s.num}
             </div>
 
@@ -216,7 +226,8 @@ function WarningSystemSection() {
               {s.desc}
             </p>
           </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

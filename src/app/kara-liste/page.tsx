@@ -8,6 +8,7 @@ import { TagChips } from "@/components/ui/tag-chips";
 import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { PageHero } from "@/components/layout/page-hero";
 import { CtaCard } from "@/components/layout/cta-card";
+import { TONE_STYLES } from "@/lib/card-tones";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 import type { Ban, Profile } from "@/lib/supabase/types";
@@ -203,33 +204,38 @@ function BanReasonsSection() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        {reasons.map((r, i) => (
-          <div
-            key={r.num}
-            className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl border border-ink-200/70 bg-white p-8 lift hover:shadow-float hover:border-danger-200 transition-all`}
-          >
-            <div className="absolute -top-2 right-4 text-[88px] font-bold text-danger-50 leading-none select-none pointer-events-none">
-              {r.num}
-            </div>
+        {reasons.map((r, i) => {
+          const t = TONE_STYLES.danger;
+          return (
+            <div
+              key={r.num}
+              className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl bg-white p-8 border border-ink-200/70 border-l-[3px] ${t.stripe} shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] ${t.hoverShadow} hover:-translate-y-0.5 transition-all duration-300`}
+            >
+              <div
+                className={`absolute -top-2 right-4 text-[88px] font-bold ${t.bigNumber} leading-none select-none pointer-events-none`}
+              >
+                {r.num}
+              </div>
 
-            <div className="relative h-44 w-full mb-6 -mx-2">
-              <Image
-                src={r.image}
-                alt={r.alt}
-                fill
-                className="object-contain"
-                sizes="(max-width: 768px) 100vw, 33vw"
-              />
-            </div>
+              <div className="relative h-44 w-full mb-6 -mx-2">
+                <Image
+                  src={r.image}
+                  alt={r.alt}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
+              </div>
 
-            <h3 className="relative text-xl font-semibold tracking-tight text-ink-900">
-              {r.title}
-            </h3>
-            <p className="relative mt-3 text-sm text-ink-600 leading-relaxed">
-              {r.desc}
-            </p>
-          </div>
-        ))}
+              <h3 className="relative text-xl font-semibold tracking-tight text-ink-900">
+                {r.title}
+              </h3>
+              <p className="relative mt-3 text-sm text-ink-600 leading-relaxed">
+                {r.desc}
+              </p>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
