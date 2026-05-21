@@ -129,6 +129,20 @@ const ggdLevelSchema = z
     return n;
   });
 
+// Aliases — virgulle ayrilmis nick listesi, max 10, her biri 48 char
+const aliasesSchema = z
+  .string()
+  .max(1000)
+  .optional()
+  .transform((v) => {
+    if (!v) return [];
+    return v
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0 && s.length <= 48)
+      .slice(0, 10);
+  });
+
 const BanSchema = z.object({
   ggd_user_id: ggdUserIdSchema,
   target_nickname: z.string().min(1, "Oyun içi nick gerekli").max(48),
@@ -138,6 +152,7 @@ const BanSchema = z.object({
     .optional()
     .transform((v) => v?.trim() || null),
   ggd_level: ggdLevelSchema,
+  aliases: aliasesSchema,
   reason: z.string().max(500).optional().transform((v) => v?.trim() || ""),
   reason_tags: z.array(z.string().min(1).max(64)).max(20).default([]),
   duration: z.enum(["permanent", "7d", "30d", "90d"]),
@@ -153,6 +168,7 @@ export async function createBanAction(
     target_nickname: formData.get("target_nickname"),
     target_main_name: formData.get("target_main_name"),
     ggd_level: formData.get("ggd_level"),
+    aliases: formData.get("aliases"),
     reason: formData.get("reason"),
     reason_tags: formData.getAll("reason_tags").map((v) => String(v)),
     duration: formData.get("duration"),
@@ -223,6 +239,7 @@ export async function createBanAction(
       target_nickname: parsed.data.target_nickname,
       target_main_name: parsed.data.target_main_name,
       ggd_level: parsed.data.ggd_level,
+      aliases: parsed.data.aliases,
       reason: parsed.data.reason,
       reason_tags: parsed.data.reason_tags,
       duration: parsed.data.duration,
@@ -329,6 +346,7 @@ const WarningSchema = z.object({
     .optional()
     .transform((v) => v?.trim() || null),
   ggd_level: ggdLevelSchema,
+  aliases: aliasesSchema,
   reason: z.string().max(500).optional().transform((v) => v?.trim() || ""),
   reason_tags: z.array(z.string().min(1).max(64)).max(20).default([]),
   severity: z.enum(["low", "medium", "high"]),
@@ -344,6 +362,7 @@ export async function createWarningAction(
     target_nickname: formData.get("target_nickname"),
     target_main_name: formData.get("target_main_name"),
     ggd_level: formData.get("ggd_level"),
+    aliases: formData.get("aliases"),
     reason: formData.get("reason"),
     reason_tags: formData.getAll("reason_tags").map((v) => String(v)),
     severity: formData.get("severity"),
@@ -371,6 +390,7 @@ export async function createWarningAction(
       target_nickname: parsed.data.target_nickname,
       target_main_name: parsed.data.target_main_name,
       ggd_level: parsed.data.ggd_level,
+      aliases: parsed.data.aliases,
       reason: parsed.data.reason,
       reason_tags: parsed.data.reason_tags,
       severity: parsed.data.severity,
@@ -418,6 +438,7 @@ export async function createWarningAction(
             target_nickname: parsed.data.target_nickname,
             target_main_name: parsed.data.target_main_name,
             ggd_level: parsed.data.ggd_level,
+            aliases: parsed.data.aliases,
             reason:
               "Otomatik ban — 3 aktif uyarı birikti (lobi kuralları gereği)",
             reason_tags: ["uyari-birikimi"],
@@ -827,6 +848,14 @@ export async function resolveReportAction(
 
 const ALLOWED_IMAGE = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const ALLOWED_VIDEO = ["video/mp4", "video/webm", "video/quicktime"];
+const ALLOWED_AUDIO = [
+  "audio/mpeg",
+  "audio/mp4",
+  "audio/ogg",
+  "audio/wav",
+  "audio/webm",
+  "audio/x-m4a",
+];
 const MAX_EVIDENCE_FILES = 5;
 const MAX_EVIDENCE_SIZE = 50 * 1024 * 1024;
 
@@ -854,11 +883,10 @@ async function uploadAdminEvidence(
   const supabase = await createClient();
   for (const file of files) {
     if (file.size === 0 || file.size > MAX_EVIDENCE_SIZE) continue;
-    if (
-      !ALLOWED_IMAGE.includes(file.type) &&
-      !ALLOWED_VIDEO.includes(file.type)
-    )
-      continue;
+    const isImage = ALLOWED_IMAGE.includes(file.type);
+    const isVideo = ALLOWED_VIDEO.includes(file.type);
+    const isAudio = ALLOWED_AUDIO.includes(file.type);
+    if (!isImage && !isVideo && !isAudio) continue;
 
     const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
     const path = `${target}/${recordId}/${Date.now()}-${Math.random()
@@ -877,7 +905,7 @@ async function uploadAdminEvidence(
     await supabase.from(tableName).insert({
       [fkColumn]: recordId,
       storage_path: path,
-      media_type: ALLOWED_VIDEO.includes(file.type) ? "video" : "image",
+      media_type: isAudio ? "audio" : isVideo ? "video" : "image",
       file_size_bytes: file.size,
     });
   }
@@ -900,6 +928,7 @@ function readEvidenceFiles(formData: FormData): File[] {
 const RedZoneSchema = z.object({
   ggd_user_id: ggdUserIdSchema,
   ggd_level: ggdLevelSchema,
+  aliases: aliasesSchema,
   nickname: z.string().min(1, "Nickname zorunlu").max(48),
   main_name: z
     .string()
@@ -932,6 +961,7 @@ export async function createRedZoneAction(
   const parsed = RedZoneSchema.safeParse({
     ggd_user_id: formData.get("ggd_user_id"),
     ggd_level: formData.get("ggd_level"),
+    aliases: formData.get("aliases"),
     nickname: formData.get("nickname"),
     main_name: formData.get("main_name"),
     reason: formData.get("reason"),
@@ -960,6 +990,7 @@ export async function createRedZoneAction(
     .insert({
       ggd_user_id: parsed.data.ggd_user_id,
       ggd_level: parsed.data.ggd_level,
+      aliases: parsed.data.aliases,
       nickname: parsed.data.nickname,
       main_name: parsed.data.main_name,
       reason: parsed.data.reason,

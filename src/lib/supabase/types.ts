@@ -90,6 +90,7 @@ export interface Ban {
   target_nickname: string;
   target_main_name: string | null;
   ggd_level: number | null;
+  aliases: string[];
   reason: string;
   reason_tags: string[];
   duration: BanDuration;
@@ -105,6 +106,7 @@ export interface Warning {
   target_nickname: string;
   target_main_name: string | null;
   ggd_level: number | null;
+  aliases: string[];
   reason: string;
   reason_tags: string[];
   severity: WarningSeverity;
@@ -261,7 +263,7 @@ export interface BanEvidence {
   id: number;
   ban_id: number;
   storage_path: string;
-  media_type: "image" | "video";
+  media_type: "image" | "video" | "audio";
   file_size_bytes: number | null;
   created_at: string;
 }
@@ -270,7 +272,7 @@ export interface WarningEvidence {
   id: number;
   warning_id: number;
   storage_path: string;
-  media_type: "image" | "video";
+  media_type: "image" | "video" | "audio";
   file_size_bytes: number | null;
   created_at: string;
 }
@@ -279,7 +281,7 @@ export interface RedZoneEvidence {
   id: number;
   red_zone_id: number;
   storage_path: string;
-  media_type: "image" | "video";
+  media_type: "image" | "video" | "audio";
   file_size_bytes: number | null;
   created_at: string;
 }
@@ -290,6 +292,7 @@ export interface RedZoneEntry {
   nickname: string;
   main_name: string | null;
   ggd_level: number | null;
+  aliases: string[];
   reason: string;
   description: string | null;
   source: string | null;

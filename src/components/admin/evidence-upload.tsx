@@ -46,14 +46,14 @@ export function EvidenceUpload({ label = "Kanıt (foto/video)" }: { label?: stri
         className="mt-1 flex items-center justify-center gap-2 h-11 px-4 rounded-xl border border-dashed border-ink-300 bg-ink-50/40 hover:border-brand-400 hover:bg-brand-50/40 cursor-pointer transition-colors text-sm text-ink-600"
       >
         <Paperclip className="h-4 w-4" />
-        <span>Foto / video seç (JPG, PNG, WEBP, MP4, WEBM)</span>
+        <span>Foto / video / ses seç (JPG, PNG, MP4, WEBM, MP3, OGG, WAV, M4A)</span>
       </label>
       <input
         id="evidence-input"
         name="evidence"
         type="file"
         multiple
-        accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+        accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/webm,audio/x-m4a"
         onChange={handleChange}
         className="hidden"
       />

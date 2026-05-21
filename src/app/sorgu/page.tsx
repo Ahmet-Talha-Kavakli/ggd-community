@@ -60,6 +60,7 @@ type BanLite = Pick<
   | "is_active"
   | "target_nickname"
   | "target_main_name"
+  | "aliases"
 >;
 type WarningLite = Pick<
   Warning,
@@ -72,6 +73,7 @@ type WarningLite = Pick<
   | "is_active"
   | "target_nickname"
   | "target_main_name"
+  | "aliases"
 >;
 type ReportLite = {
   id: number;
@@ -137,8 +139,8 @@ export default async function SorguPage({ searchParams }: SearchParamsProps) {
                   </div>
                   <p className="mt-2 text-xs text-ink-500 flex items-start gap-1.5">
                     <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    User ID&apos;yi GGD içinde Settings → Account bölümünden
-                    bulabilirsin. En az 2 karakter.
+                    Sorgulamak istediğin oyuncunun nick&apos;ini veya ana
+                    ismini yaz.
                   </p>
                 </div>
               </form>
@@ -564,21 +566,43 @@ async function DetailView({
   const matchMain =
     profile?.ggd_main_name ?? player?.main_name ?? query;
 
-  // Bans, warnings ve reports — id veya nick/main isimle eşle
+  // Bans, warnings ve reports — id veya nick/main isimle eşle. Aliases array'i
+  // de PostgreSQL @> (contains) operatoru ile aratilir.
   const banSelect =
-    "id, ggd_user_id, reason, reason_tags, duration, expires_at, created_at, is_active, target_nickname, target_main_name";
+    "id, ggd_user_id, reason, reason_tags, duration, expires_at, created_at, is_active, target_nickname, target_main_name, aliases";
   const warnSelect =
-    "id, ggd_user_id, reason, reason_tags, severity, created_at, is_active, target_nickname, target_main_name";
+    "id, ggd_user_id, reason, reason_tags, severity, created_at, is_active, target_nickname, target_main_name, aliases";
   const repSelect =
     "id, target_ggd_user_id, target_nickname, target_main_name, category, description, status, created_at";
 
-  const [bansById, bansByNick, bansByMain, warnsById, warnsByNick, warnsByMain, repsById, repsByNick, repsByMain] = await Promise.all([
+  const [
+    bansById,
+    bansByNick,
+    bansByMain,
+    bansByAlias,
+    warnsById,
+    warnsByNick,
+    warnsByMain,
+    warnsByAlias,
+    repsById,
+    repsByNick,
+    repsByMain,
+  ] = await Promise.all([
     supabase.from("bans").select(banSelect).eq("ggd_user_id", matchId),
     supabase.from("bans").select(banSelect).ilike("target_nickname", matchNick),
     supabase.from("bans").select(banSelect).ilike("target_main_name", matchMain),
+    // aliases array contains: cs operatoru, JSON array notasyonu
+    supabase
+      .from("bans")
+      .select(banSelect)
+      .contains("aliases", [matchNick]),
     supabase.from("warnings").select(warnSelect).eq("ggd_user_id", matchId),
     supabase.from("warnings").select(warnSelect).ilike("target_nickname", matchNick),
     supabase.from("warnings").select(warnSelect).ilike("target_main_name", matchMain),
+    supabase
+      .from("warnings")
+      .select(warnSelect)
+      .contains("aliases", [matchNick]),
     supabase.from("reports").select(repSelect).eq("target_ggd_user_id", matchId),
     supabase.from("reports").select(repSelect).ilike("target_nickname", matchNick),
     supabase.from("reports").select(repSelect).ilike("target_main_name", matchMain),
@@ -598,11 +622,13 @@ async function DetailView({
     bansById.data as BanLite[],
     bansByNick.data as BanLite[],
     bansByMain.data as BanLite[],
+    bansByAlias.data as BanLite[],
   );
   const warnings = dedupe<WarningLite>(
     warnsById.data as WarningLite[],
     warnsByNick.data as WarningLite[],
     warnsByMain.data as WarningLite[],
+    warnsByAlias.data as WarningLite[],
   );
   const reports = dedupe<ReportLite>(
     repsById.data as ReportLite[],
@@ -635,17 +661,21 @@ async function DetailView({
     }
   }
 
-  // Ban / warning evidence — admin-evidence bucket (public read)
+  // Ban / warning evidence — admin-evidence bucket. Bucket Private oldugu
+  // icin signed URL (1 saat) kullanilir. Bu sayede bucket private kalir
+  // ama public sorgu sayfasinda gosterilebilir.
   type AdminEvidenceItem = {
     id: number;
     storage_path: string;
-    media_type: "image" | "video";
-    url: string;
+    media_type: "image" | "video" | "audio";
+    url: string | null;
   };
 
-  const buildPublicUrl = (path: string) => {
-    const { data } = supabase.storage.from("admin-evidence").getPublicUrl(path);
-    return data.publicUrl;
+  const signAdminUrl = async (path: string): Promise<string | null> => {
+    const { data } = await supabase.storage
+      .from("admin-evidence")
+      .createSignedUrl(path, 60 * 60);
+    return data?.signedUrl ?? null;
   };
 
   const banIds = bans.map((b) => b.id);
@@ -655,18 +685,25 @@ async function DetailView({
       .from("ban_evidence")
       .select("id, ban_id, storage_path, media_type")
       .in("ban_id", banIds);
-    for (const row of ((banEv ?? []) as {
+    const rows = (banEv ?? []) as {
       id: number;
       ban_id: number;
       storage_path: string;
-      media_type: "image" | "video";
-    }[])) {
+      media_type: "image" | "video" | "audio";
+    }[];
+    const withUrls = await Promise.all(
+      rows.map(async (row) => ({
+        ...row,
+        url: await signAdminUrl(row.storage_path),
+      })),
+    );
+    for (const row of withUrls) {
       const list = evidenceByBan.get(row.ban_id) ?? [];
       list.push({
         id: row.id,
         storage_path: row.storage_path,
         media_type: row.media_type,
-        url: buildPublicUrl(row.storage_path),
+        url: row.url,
       });
       evidenceByBan.set(row.ban_id, list);
     }
@@ -679,18 +716,25 @@ async function DetailView({
       .from("warning_evidence")
       .select("id, warning_id, storage_path, media_type")
       .in("warning_id", warnIds);
-    for (const row of ((warnEv ?? []) as {
+    const rows = (warnEv ?? []) as {
       id: number;
       warning_id: number;
       storage_path: string;
-      media_type: "image" | "video";
-    }[])) {
+      media_type: "image" | "video" | "audio";
+    }[];
+    const withUrls = await Promise.all(
+      rows.map(async (row) => ({
+        ...row,
+        url: await signAdminUrl(row.storage_path),
+      })),
+    );
+    for (const row of withUrls) {
       const list = evidenceByWarning.get(row.warning_id) ?? [];
       list.push({
         id: row.id,
         storage_path: row.storage_path,
         media_type: row.media_type,
-        url: buildPublicUrl(row.storage_path),
+        url: row.url,
       });
       evidenceByWarning.set(row.warning_id, list);
     }
@@ -949,6 +993,38 @@ async function DetailView({
                 </div>
               ))}
             </div>
+
+            {/* Aliases — tum ban/warning kayitlarindan unique nick'ler */}
+            {(() => {
+              const allAliases = new Set<string>();
+              for (const b of bans)
+                for (const a of b.aliases ?? []) allAliases.add(a);
+              for (const w of warnings)
+                for (const a of w.aliases ?? []) allAliases.add(a);
+              // Kendi nick'i ve main name'ini cikar
+              if (ingameNick) allAliases.delete(ingameNick);
+              if (mainName) allAliases.delete(mainName);
+              const aliasArr = Array.from(allAliases);
+              if (aliasArr.length === 0) return null;
+              return (
+                <div className="mt-4 pt-4 border-t border-ink-200">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-400 mb-2">
+                    Diğer / eski nick&apos;ler
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {aliasArr.map((a) => (
+                      <Link
+                        key={a}
+                        href={`/sorgu?q=${encodeURIComponent(a)}`}
+                        className="inline-flex items-center gap-1 rounded-full bg-ink-100 hover:bg-ink-200 border border-ink-200 px-2.5 py-0.5 text-xs font-medium text-ink-700 transition-colors"
+                      >
+                        {a}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
 
@@ -1377,44 +1453,69 @@ function FuzzySuggestionBox({
 function EvidenceGrid({
   items,
 }: {
-  items: { id: number; url: string; media_type: "image" | "video" }[];
+  items: {
+    id: number;
+    url: string | null;
+    media_type: "image" | "video" | "audio";
+  }[];
 }) {
-  if (items.length === 0) return null;
+  const valid = items.filter((e) => e.url);
+  if (valid.length === 0) return null;
   return (
     <div className="mt-2 flex flex-wrap gap-2">
-      {items.map((e) => (
-        <a
-          key={e.id}
-          href={e.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="relative block h-20 w-20 rounded-lg overflow-hidden border border-ink-200 bg-ink-50 hover:border-brand-400 transition-colors"
-          title={e.media_type === "video" ? "Video kanıtı" : "Foto kanıtı"}
-        >
-          {e.media_type === "image" ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={e.url}
-              alt="Kanıt"
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-          ) : (
-            <video
-              src={e.url}
-              className="h-full w-full object-cover"
-              muted
-              playsInline
-              preload="metadata"
-            />
-          )}
-          {e.media_type === "video" && (
-            <span className="absolute bottom-1 right-1 text-[10px] font-bold uppercase bg-black/60 text-white px-1.5 py-0.5 rounded">
-              VID
-            </span>
-          )}
-        </a>
-      ))}
+      {valid.map((e) => {
+        if (e.media_type === "audio") {
+          return (
+            <div
+              key={e.id}
+              className="relative h-12 w-56 rounded-lg overflow-hidden border border-ink-200 bg-ink-50 flex items-center px-2 gap-2"
+            >
+              <span className="text-[10px] font-bold uppercase text-ink-500 shrink-0">
+                Ses
+              </span>
+              <audio
+                src={e.url!}
+                controls
+                preload="metadata"
+                className="h-9 flex-1 min-w-0"
+              />
+            </div>
+          );
+        }
+        return (
+          <a
+            key={e.id}
+            href={e.url!}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative block h-20 w-20 rounded-lg overflow-hidden border border-ink-200 bg-ink-50 hover:border-brand-400 transition-colors"
+            title={e.media_type === "video" ? "Video kanıtı" : "Foto kanıtı"}
+          >
+            {e.media_type === "image" ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={e.url!}
+                alt="Kanıt"
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <video
+                src={e.url!}
+                className="h-full w-full object-cover"
+                muted
+                playsInline
+                preload="metadata"
+              />
+            )}
+            {e.media_type === "video" && (
+              <span className="absolute bottom-1 right-1 text-[10px] font-bold uppercase bg-black/60 text-white px-1.5 py-0.5 rounded">
+                VID
+              </span>
+            )}
+          </a>
+        );
+      })}
     </div>
   );
 }

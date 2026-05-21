@@ -96,6 +96,21 @@ export function BanForm({
       </div>
 
       <div>
+        <Label htmlFor="aliases">
+          Eski / diğer nick&apos;ler{" "}
+          <span className="text-ink-400 font-normal">(opsiyonel)</span>
+        </Label>
+        <Input
+          id="aliases"
+          name="aliases"
+          placeholder="Virgülle ayır — örn. ToxicHonk, TrolKaz, FakeName"
+        />
+        <p className="mt-1.5 text-xs text-ink-500">
+          Sorgulamada bu nick&apos;ler de eşleşir. En fazla 10 nick.
+        </p>
+      </div>
+
+      <div>
         <Label htmlFor="duration">Süre</Label>
         <select
           id="duration"
