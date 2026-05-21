@@ -31,42 +31,42 @@ export const revalidate = 30; // Anasayfa 30 sn cache (oda kodu, son üyeler iç
 
 const FEATURES = [
   {
-    image: "/goose-search.png",
+    icon: MagnifyingGlass,
     title: "Oyuncu Sorgu",
     description:
       "GGD User ID ile herhangi bir oyuncunun uyarı ve kara liste durumunu anında öğren.",
     href: "/sorgu",
   },
   {
-    image: "/goose-shield.png",
+    icon: ShieldCheck,
     title: "Kara Liste & Uyarılar",
     description:
       "Toksik oyuncuların listesi, gerekçeli ban kayıtları ve uyarı geçmişi.",
     href: "/kara-liste",
   },
   {
-    image: "/goose-report.png",
+    icon: Warning,
     title: "Şikayet Sistemi",
     description:
       "Kanıt yükleyerek (foto/video) oyuncuları yönetime şikayet et. Şeffaf süreç.",
     href: "/sikayet",
   },
   {
-    image: "/goose-friendly.png",
+    icon: ChatsCircle,
     title: "Topluluk Sohbeti",
     description:
       "Kanallı yapı ile oyuncularla anlık sohbet et, lobi ara, deneyim paylaş.",
     href: "/topluluk",
   },
   {
-    image: "/goose-megaphone.png",
+    icon: Megaphone,
     title: "Duyurular",
     description:
       "Yönetimden gelen güncel duyurular, kural değişiklikleri ve etkinlikler.",
     href: "/duyurular",
   },
   {
-    image: "/goose-celebrating.png",
+    icon: UserPlus,
     title: "Üye Kaydı",
     description:
       "Topluluğun bir parçası ol, GGD Friend Code ile kayıt ol.",
@@ -421,34 +421,32 @@ export default async function HomePage() {
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f, i) => (
-            <Link key={f.href} href={f.href} className="group">
-              <Card
-                className={`animate-fade-up stagger-${Math.min(i + 1, 6)} h-full lift hover:shadow-float hover:border-brand-200`}
-              >
-                <CardContent className="p-7">
-                  <div className="relative h-14 w-14 overflow-hidden rounded-full bg-brand-50/60 group-hover:bg-brand-100 transition-colors duration-300">
-                    <Image
-                      src={f.image}
-                      alt={f.title}
-                      fill
-                      className="object-contain p-1.5 group-hover:scale-110 transition-transform duration-300"
-                      sizes="56px"
-                    />
-                  </div>
-                  <h3 className="mt-5 text-lg font-semibold text-ink-900 tracking-tight">
-                    {f.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-ink-500 leading-relaxed">
-                    {f.description}
-                  </p>
-                  <div className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-brand-700 group-hover:gap-2 transition-all">
-                    Keşfet
-                    <ArrowRight size={14} weight="bold" />
-                  </div>
-                </CardContent>
-              </Card>
+            <Link
+              key={f.href}
+              href={f.href}
+              className={`group animate-fade-up stagger-${Math.min(i + 1, 6)}`}
+            >
+              <div className="relative h-full bg-white/90 backdrop-blur-sm rounded-2xl p-7 border border-ink-200/70 border-l-[3px] border-l-brand-500 shadow-[0_2px_8px_-2px_rgba(16,185,129,0.05)] hover:shadow-[0_12px_32px_-8px_rgba(16,185,129,0.20)] hover:-translate-y-0.5 transition-all duration-300">
+                <div
+                  aria-hidden
+                  className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-brand-100/40 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                />
+                <div className="relative inline-flex items-center justify-center h-14 w-14 rounded-full bg-linear-to-br from-brand-100 via-brand-50 to-white ring-1 ring-brand-200/50 shadow-sm group-hover:ring-brand-300 group-hover:shadow-md group-hover:scale-105 transition-all duration-300">
+                  <f.icon size={26} weight="duotone" className="text-brand-700" />
+                </div>
+                <h3 className="relative mt-5 text-lg font-semibold tracking-tight text-ink-900">
+                  {f.title}
+                </h3>
+                <p className="relative mt-2 text-sm text-ink-600 leading-relaxed">
+                  {f.description}
+                </p>
+                <span className="relative mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-brand-700 group-hover:gap-2.5 transition-all">
+                  Keşfet
+                  <ArrowRight size={14} weight="bold" />
+                </span>
+              </div>
             </Link>
           ))}
         </div>
