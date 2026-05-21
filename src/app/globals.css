@@ -218,29 +218,27 @@ h1 {
 }
 
 .glass {
-  /* Daha guclu buzlu cam — altindaki icerik blur'lanir, "sansurlu" his */
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: saturate(180%) blur(28px);
-  -webkit-backdrop-filter: saturate(180%) blur(28px);
+  /* Cok guclu buzlu cam — altindaki icerik hayli sansurlenir */
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: saturate(180%) blur(48px);
+  -webkit-backdrop-filter: saturate(180%) blur(48px);
 }
 
-/* Header'in hemen altinda, on icerige geciste yumusak fade — alttaki
-   yazilar header'a yaklasirken kademeli olarak blurlanir hissi.
-   header'a relative overflow-visible verir, hemen altinda fixed bir
-   "lens" overlay konumlandirir. */
+/* Header'in hemen altinda yumusak fade overlay — header'a yaklasan icerik
+   kademeli olarak buzlanir his. Yukseklik buyuk (40px) ve blur'lu. */
 .glass::after {
   content: "";
   position: absolute;
   inset: 100% 0 auto 0;
-  height: 24px;
+  height: 40px;
   pointer-events: none;
   background: linear-gradient(
     to bottom,
-    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.45) 0%,
     rgba(255, 255, 255, 0) 100%
   );
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
 }
