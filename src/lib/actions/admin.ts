@@ -10,6 +10,7 @@ import {
   sendBanNotificationEmail,
   sendReportResolvedEmail,
   sendVerificationEmail,
+  sendWarningNotificationEmail,
 } from "@/lib/email";
 import type { AdminActionState } from "./admin-types";
 import { GGD_MAPS, GGD_MODES } from "@/lib/ggd-presets";
@@ -293,6 +294,24 @@ export async function createWarningAction(
     .select("id")
     .single();
   if (error) return { ok: false, error: error.message };
+
+  // Uyarilan oyuncu sitemize kayitliysa email bildirimi
+  if (parsed.data.ggd_user_id) {
+    const { data: targetProfile } = await supabase
+      .from("profiles")
+      .select("email, nickname")
+      .eq("ggd_user_id", parsed.data.ggd_user_id)
+      .maybeSingle();
+    const tp = targetProfile as { email: string; nickname: string } | null;
+    if (tp?.email) {
+      await sendWarningNotificationEmail({
+        to: tp.email,
+        nickname: tp.nickname,
+        reason: parsed.data.reason,
+        severity: parsed.data.severity,
+      });
+    }
+  }
 
   await logAuditEvent({
     actorId: current.user.id,

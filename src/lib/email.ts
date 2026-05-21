@@ -205,6 +205,126 @@ export async function sendVerificationEmail({
 }
 
 // -----------------------------------------------------------------------------
+// Hoş geldin — yeni kayıt sonrası
+// -----------------------------------------------------------------------------
+export async function sendWelcomeEmail({
+  to,
+  nickname,
+}: {
+  to: string;
+  nickname: string;
+}) {
+  const body = `
+    <h1 style="margin:0 0 12px;font-size:22px;font-weight:600;letter-spacing:-0.02em">Hoş geldin ${nickname}! 🪿</h1>
+    <p style="margin:0 0 16px;color:#3f3f46;font-size:15px;line-height:1.6">
+      GooseCage'e kayıt olduğun için teşekkürler. Hesabın şu anda
+      <strong>onay bekliyor</strong> — yönetim ekibi kısa süre içinde
+      üyeliğini değerlendirecek.
+    </p>
+    <p style="margin:0 0 16px;color:#3f3f46;font-size:15px;line-height:1.6">
+      Onay sonrası şunları yapabileceksin:
+    </p>
+    <ul style="margin:0 0 24px;padding-left:20px;color:#3f3f46;font-size:14px;line-height:1.8">
+      <li>Topluluk chat'inde konuşabilirsin</li>
+      <li>Toksik oyuncuları şikayet edebilirsin (foto/video kanıtla)</li>
+      <li>Diğer oyuncuların sicilini sorgulayabilirsin</li>
+    </ul>
+    <p style="margin:24px 0 0">${button(siteUrl("/"), "Siteye dön")}</p>
+  `;
+  return sendEmail({
+    to,
+    subject: `Hoş geldin ${nickname} — GooseCage`,
+    html: layout("Hoş geldin", body),
+    text: `Hoş geldin ${nickname}! Hesabın onay bekliyor, yönetim kısa sürede değerlendirecek.`,
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Şikayet alındı — raporcuya
+// -----------------------------------------------------------------------------
+export async function sendReportReceivedEmail({
+  to,
+  reporterNickname,
+  targetNickname,
+  reportId,
+}: {
+  to: string;
+  reporterNickname: string;
+  targetNickname: string;
+  reportId: number;
+}) {
+  const body = `
+    <h1 style="margin:0 0 12px;font-size:22px;font-weight:600;letter-spacing:-0.02em">Şikayetin alındı, ${reporterNickname}</h1>
+    <p style="margin:0 0 16px;color:#3f3f46;font-size:15px;line-height:1.6">
+      <strong>${targetNickname}</strong> hakkındaki şikayetin yönetim ekibine
+      iletildi. En kısa sürede incelenecek.
+    </p>
+    <div style="background:#f4f4f5;border-radius:12px;padding:14px 16px;margin:16px 0;font-size:13px;color:#52525b">
+      Şikayet referans no: <span style="font-family:monospace;color:#18181b;font-weight:500">#${reportId}</span>
+    </div>
+    <p style="margin:0 0 16px;color:#52525b;font-size:14px;line-height:1.6">
+      Sonuç çıktığında ayrı bir email alacaksın. Süreç hakkında soru sormak
+      için destek hattını kullanabilirsin.
+    </p>
+    <p style="margin:24px 0 0">${button(siteUrl("/profil/sikayetlerim"), "Şikayetlerimi takip et")}</p>
+  `;
+  return sendEmail({
+    to,
+    subject: `Şikayetin alındı (#${reportId}) — GooseCage`,
+    html: layout("Şikayet alındı", body),
+    text: `Şikayetin alındı, ${reporterNickname}. ${targetNickname} hakkında. Referans no: #${reportId}`,
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Uyarı bildirimi — uyarılan kayıtlıysa
+// -----------------------------------------------------------------------------
+export async function sendWarningNotificationEmail({
+  to,
+  nickname,
+  reason,
+  severity,
+}: {
+  to: string;
+  nickname: string;
+  reason: string;
+  severity: "low" | "medium" | "high";
+}) {
+  const severityText = {
+    low: "düşük",
+    medium: "orta",
+    high: "yüksek",
+  }[severity];
+  const severityColor = {
+    low: { bg: "#fffbeb", border: "#fde68a", text: "#92400e" },
+    medium: { bg: "#fef3c7", border: "#fcd34d", text: "#78350f" },
+    high: { bg: "#fef2f2", border: "#fecaca", text: "#991b1b" },
+  }[severity];
+
+  const body = `
+    <h1 style="margin:0 0 12px;font-size:22px;font-weight:600;letter-spacing:-0.02em">Bir uyarı aldın</h1>
+    <p style="margin:0 0 16px;color:#3f3f46;font-size:15px;line-height:1.6">
+      Merhaba ${nickname}, yönetim sana <strong>${severityText} seviye</strong>
+      bir uyarı verdi. Detayı:
+    </p>
+    <div style="background:${severityColor.bg};border:1px solid ${severityColor.border};border-radius:12px;padding:16px;margin:16px 0;color:${severityColor.text};font-size:14px;line-height:1.5">
+      ${reason}
+    </div>
+    <p style="margin:16px 0;color:#52525b;font-size:14px;line-height:1.6">
+      <strong>3 aktif uyarı = otomatik ban.</strong> Lobi kurallarına dikkat
+      etmen önemli. İtirazın varsa destek hattından bildirebilirsin.
+    </p>
+    <p style="margin:24px 0 0">${button(siteUrl("/uyarilar"), "Uyarılarımı gör")}</p>
+  `;
+  return sendEmail({
+    to,
+    subject: `Bir uyarı aldın — GooseCage`,
+    html: layout("Uyarı bildirimi", body),
+    text: `Merhaba ${nickname}, ${severityText} seviye uyarı aldın. Sebep: ${reason}. 3 uyarı = ban.`,
+  });
+}
+
+// -----------------------------------------------------------------------------
 // Ban / uyarı bildirim (banlanan/uyarılan kayıtlıysa)
 // -----------------------------------------------------------------------------
 export async function sendBanNotificationEmail({

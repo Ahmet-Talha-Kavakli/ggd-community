@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireApprovedMember } from "@/lib/auth/require-admin";
 import { analyzeReport } from "@/lib/ai/analyze-report";
+import { sendReportReceivedEmail } from "@/lib/email";
 import type { AdminActionState } from "./admin-types";
 
 const MAX_FILES = 5;
@@ -152,6 +153,18 @@ export async function createReportAction(
         ai_analyzed_at: new Date().toISOString(),
       })
       .eq("id", reportId);
+  }
+
+  // Raporcuya "sikayet alindi" maili — async, hata olsa bile flow durdurmaz
+  if (current.email) {
+    sendReportReceivedEmail({
+      to: current.email,
+      reporterNickname: current.nickname,
+      targetNickname: parsed.data.target_nickname,
+      reportId,
+    }).catch((err) =>
+      console.error("report received email failed:", err),
+    );
   }
 
   revalidatePath("/admin/sikayetler");

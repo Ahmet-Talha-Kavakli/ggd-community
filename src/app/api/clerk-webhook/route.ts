@@ -4,6 +4,7 @@ import { Webhook } from "svix";
 import { createClient } from "@supabase/supabase-js";
 import { clerkClient } from "@clerk/nextjs/server";
 import { randomUUID } from "node:crypto";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -204,6 +205,15 @@ export async function POST(req: Request) {
       });
     } catch (err) {
       console.error("clerk metadata update failed:", err);
+    }
+
+    // Hos geldin maili — sadece YENI yaratilan profile icin (orphan link
+    // durumunda email gondermeyelim, kullanici muhtemelen daha onceden almis).
+    const isNewProfile = !(existingByClerk as { id: string } | null)?.id;
+    if (isNewProfile && email) {
+      sendWelcomeEmail({ to: email, nickname }).catch((err) =>
+        console.error("welcome email failed:", err),
+      );
     }
 
     return NextResponse.json({ ok: true, profile_id: profileId });
