@@ -1,12 +1,6 @@
 import Link from "next/link";
-import {
-  DiscordLogo,
-  YoutubeLogo,
-  XLogo,
-  InstagramLogo,
-  TiktokLogo,
-} from "@phosphor-icons/react/dist/ssr";
 import { Logo } from "@/components/brand/logo";
+import { FooterSocials } from "./footer-socials";
 import { SITE } from "@/config/site";
 
 type FooterLink = { href: string; label: string; tone?: "danger" };
@@ -43,39 +37,6 @@ const SECTIONS: { title: string; links: FooterLink[] }[] = [
   },
 ];
 
-const SOCIAL = [
-  {
-    name: "Discord",
-    href: SITE.socials.discord,
-    color: "#5865F2",
-    icon: DiscordLogo,
-  },
-  {
-    name: "YouTube",
-    href: SITE.socials.youtube,
-    color: "#FF0000",
-    icon: YoutubeLogo,
-  },
-  {
-    name: "X",
-    href: SITE.socials.x,
-    color: "#000000",
-    icon: XLogo,
-  },
-  {
-    name: "Instagram",
-    href: SITE.socials.instagram,
-    color: "#E4405F",
-    icon: InstagramLogo,
-  },
-  {
-    name: "TikTok",
-    href: SITE.socials.tiktok,
-    color: "#000000",
-    icon: TiktokLogo,
-  },
-];
-
 export function SiteFooter() {
   return (
     <footer className="relative mt-24 border-t border-brand-200/50 bg-linear-to-b from-white via-brand-50/40 to-brand-100/40">
@@ -86,26 +47,8 @@ export function SiteFooter() {
       />
 
       <div className="relative container-page py-12">
-        {/* Sosyal media chips */}
-        <div className="flex flex-wrap gap-2.5 justify-center mb-10 pb-8 border-b border-brand-200/40">
-          {SOCIAL.map((s) => (
-            <button
-              type="button"
-              key={s.name}
-              onClick={(e) => e.preventDefault()}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-ink-200 bg-white/70 backdrop-blur hover:bg-white hover:border-ink-300 hover:-translate-y-0.5 transition-all shadow-sm group cursor-pointer"
-              aria-label={s.name}
-            >
-              <s.icon
-                size={18}
-                weight="fill"
-                style={{ color: s.color }}
-                className="transition-transform group-hover:scale-110"
-              />
-              <span className="text-sm font-medium text-ink-700">{s.name}</span>
-            </button>
-          ))}
-        </div>
+        {/* Sosyal media chips — client component (pasif) */}
+        <FooterSocials />
 
         {/* Logo + columns */}
         <div className="grid gap-10 md:gap-12 grid-cols-2 sm:grid-cols-3 md:grid-cols-[1.4fr_repeat(3,1fr)]">
