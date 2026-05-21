@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { List, X, Shield } from "@phosphor-icons/react";
+import { List, X, Shield, CaretDown } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/auth/user-menu";
 import {
@@ -13,18 +13,78 @@ import {
 import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 
-const NAV = [
+type NavLink = { href: string; label: string; description?: string };
+type NavItem =
+  | { href: string; label: string }
+  | { label: string; items: NavLink[] };
+
+const NAV: NavItem[] = [
   { href: "/", label: "Anasayfa" },
-  { href: "/sorgu", label: "Sorgu" },
-  { href: "/kara-liste", label: "Kara Liste" },
-  { href: "/uyarilar", label: "Uyarılar" },
-  { href: "/kurallar", label: "Kurallar" },
-  { href: "/yonetim", label: "Yönetim" },
-  { href: "/duyurular", label: "Duyurular" },
-  { href: "/etkinlikler", label: "Etkinlikler" },
-  { href: "/topluluk", label: "Topluluk" },
-  { href: "/istatistikler", label: "İstatistik" },
-  { href: "/destek", label: "Destek" },
+  {
+    label: "Sorgular",
+    items: [
+      {
+        href: "/sorgu",
+        label: "Oyuncu Sorgu",
+        description: "Nick, ana isim veya ID ile geçmiş",
+      },
+      {
+        href: "/kara-liste",
+        label: "Kara Liste",
+        description: "Aktif banlanmış oyuncular",
+      },
+      {
+        href: "/uyarilar",
+        label: "Uyarılar",
+        description: "Bu hafta uyarı alan oyuncular",
+      },
+    ],
+  },
+  {
+    label: "Topluluk",
+    items: [
+      {
+        href: "/topluluk",
+        label: "Sohbet",
+        description: "Kanallı sohbet sistemi",
+      },
+      {
+        href: "/duyurular",
+        label: "Duyurular",
+        description: "Yönetimden son haberler",
+      },
+      {
+        href: "/etkinlikler",
+        label: "Etkinlikler",
+        description: "Turnuvalar ve çekilişler",
+      },
+    ],
+  },
+  {
+    label: "Bilgi",
+    items: [
+      {
+        href: "/kurallar",
+        label: "Kurallar",
+        description: "Topluluk kuralları",
+      },
+      {
+        href: "/yonetim",
+        label: "Yönetim",
+        description: "Yönetim ekibimiz",
+      },
+      {
+        href: "/istatistikler",
+        label: "İstatistik",
+        description: "Topluluk rakamları",
+      },
+      {
+        href: "/destek",
+        label: "Destek",
+        description: "AI yardım hattı",
+      },
+    ],
+  },
 ];
 
 interface SiteHeaderProps {
@@ -46,33 +106,45 @@ export function SiteHeader({ user, notifications }: SiteHeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 glass border-b border-ink-200/60">
-      <div className="container-page grid grid-cols-[auto_1fr_auto] xl:grid-cols-[auto_minmax(0,1fr)_auto] h-16 items-center gap-3 xl:gap-4">
-        <Logo />
+      <div className="container-page flex items-center justify-between h-16 gap-4">
+        <div className="flex items-center gap-6">
+          <Logo />
 
-        <nav className="hidden xl:flex items-center gap-0 2xl:gap-0.5 min-w-0 overflow-x-auto scrollbar-hide">
-          {NAV.map((item) => {
-            const active =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "whitespace-nowrap px-2 2xl:px-2.5 py-2 text-[13px] 2xl:text-sm rounded-lg transition-all duration-200",
-                  active
-                    ? "text-brand-700 bg-brand-50"
-                    : "text-ink-600 hover:text-ink-900 hover:bg-ink-100",
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+          <nav className="hidden lg:flex items-center gap-1">
+            {NAV.map((item) => {
+              if ("href" in item) {
+                const active =
+                  item.href === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "px-3 py-2 text-sm rounded-lg transition-all duration-200",
+                      active
+                        ? "text-brand-700 bg-brand-50 font-medium"
+                        : "text-ink-700 hover:text-ink-900 hover:bg-ink-100",
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              }
+              return (
+                <NavDropdown
+                  key={item.label}
+                  label={item.label}
+                  items={item.items}
+                  pathname={pathname}
+                />
+              );
+            })}
+          </nav>
+        </div>
 
-        <div className="hidden xl:flex items-center gap-2 shrink-0 justify-self-end">
+        <div className="hidden lg:flex items-center gap-2 shrink-0">
           {user && notifications && (
             <NotificationBell
               unreadCount={notifications.unreadCount}
@@ -111,37 +183,69 @@ export function SiteHeader({ user, notifications }: SiteHeaderProps) {
 
         <button
           aria-label="Menü"
-          className="xl:hidden grid h-10 w-10 place-items-center rounded-lg text-ink-700 hover:bg-ink-100 transition-colors"
+          className="lg:hidden grid h-10 w-10 place-items-center rounded-lg text-ink-700 hover:bg-ink-100 transition-colors"
           onClick={() => setOpen((v) => !v)}
         >
-          {open ? <X size={20} weight="regular" /> : <List size={20} weight="regular" />}
+          {open ? (
+            <X size={20} weight="regular" />
+          ) : (
+            <List size={20} weight="regular" />
+          )}
         </button>
       </div>
 
       {open && (
-        <div className="xl:hidden border-t border-ink-200/60 bg-white/95 backdrop-blur">
-          <div className="container-page py-4 flex flex-col gap-1">
+        <div className="lg:hidden border-t border-ink-200/60 bg-white/95 backdrop-blur">
+          <div className="container-page py-4 flex flex-col gap-4">
             {NAV.map((item) => {
-              const active =
-                item.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(item.href);
+              if ("href" in item) {
+                const active =
+                  item.href === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "px-3 py-2.5 text-sm rounded-lg",
+                      active
+                        ? "text-brand-700 bg-brand-50 font-medium"
+                        : "text-ink-700 hover:bg-ink-100",
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              }
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    "px-3 py-2.5 text-sm rounded-lg",
-                    active
-                      ? "text-brand-700 bg-brand-50"
-                      : "text-ink-700 hover:bg-ink-100",
-                  )}
-                >
-                  {item.label}
-                </Link>
+                <div key={item.label} className="flex flex-col gap-1">
+                  <p className="px-3 text-xs font-semibold uppercase tracking-wider text-brand-700">
+                    {item.label}
+                  </p>
+                  {item.items.map((link) => {
+                    const active = pathname.startsWith(link.href);
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => setOpen(false)}
+                        className={cn(
+                          "px-3 py-2 text-sm rounded-lg",
+                          active
+                            ? "text-brand-700 bg-brand-50 font-medium"
+                            : "text-ink-700 hover:bg-ink-100",
+                        )}
+                      >
+                        {link.label}
+                      </Link>
+                    );
+                  })}
+                </div>
               );
             })}
+
             {user?.isAdmin && (
               <Link
                 href="/admin"
@@ -157,7 +261,7 @@ export function SiteHeader({ user, notifications }: SiteHeaderProps) {
                 Admin Paneli
               </Link>
             )}
-            <div className="mt-3 pt-3 border-t border-ink-200/60">
+            <div className="mt-2 pt-3 border-t border-ink-200/60">
               {user ? (
                 <div className="flex items-center justify-between px-3">
                   <span className="text-sm text-ink-700">{user.nickname}</span>
@@ -194,5 +298,110 @@ export function SiteHeader({ user, notifications }: SiteHeaderProps) {
         </div>
       )}
     </header>
+  );
+}
+
+function NavDropdown({
+  label,
+  items,
+  pathname,
+}: {
+  label: string;
+  items: NavLink[];
+  pathname: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const active = items.some((item) => pathname.startsWith(item.href));
+
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  function handleEnter() {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setOpen(true);
+  }
+  function handleLeave() {
+    timeoutRef.current = setTimeout(() => setOpen(false), 120);
+  }
+
+  return (
+    <div
+      className="relative"
+      ref={ref}
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          "inline-flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-all duration-200",
+          active
+            ? "text-brand-700 bg-brand-50 font-medium"
+            : "text-ink-700 hover:text-ink-900 hover:bg-ink-100",
+        )}
+        aria-expanded={open}
+        aria-haspopup="menu"
+      >
+        {label}
+        <CaretDown
+          size={12}
+          weight="bold"
+          className={cn(
+            "transition-transform duration-200",
+            open && "rotate-180",
+          )}
+        />
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 pt-2 min-w-[260px] z-50">
+          <div className="rounded-2xl border border-ink-200 bg-white shadow-float overflow-hidden animate-scale-in origin-top-left">
+            <nav className="p-1.5" role="menu">
+              {items.map((item) => {
+                const itemActive = pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    role="menuitem"
+                    className={cn(
+                      "block rounded-xl px-3 py-2.5 transition-colors",
+                      itemActive
+                        ? "bg-brand-50"
+                        : "hover:bg-ink-50",
+                    )}
+                  >
+                    <p
+                      className={cn(
+                        "text-sm font-medium",
+                        itemActive ? "text-brand-700" : "text-ink-900",
+                      )}
+                    >
+                      {item.label}
+                    </p>
+                    {item.description && (
+                      <p className="mt-0.5 text-xs text-ink-500 leading-relaxed">
+                        {item.description}
+                      </p>
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
