@@ -4,16 +4,21 @@
 -- - support_attachments tablosu (storage path'leri)
 -- - support-attachments bucket policy'leri
 -- Bucket'i once Supabase Dashboard'dan olustur: support-attachments (Private)
+-- Idempotent: tekrar calistirilabilir.
 -- =============================================================================
 
 -- Kategori enum'u
-create type support_category as enum (
-  'ban_appeal',
-  'account_approval',
-  'account_issue',
-  'bug_report',
-  'general'
-);
+do $$ begin
+  create type support_category as enum (
+    'ban_appeal',
+    'account_approval',
+    'account_issue',
+    'bug_report',
+    'general'
+  );
+exception
+  when duplicate_object then null;
+end $$;
 
 alter table support_tickets
   add column if not exists category support_category not null default 'general';
@@ -33,8 +38,7 @@ create index if not exists support_attachments_ticket_idx
 
 alter table support_attachments enable row level security;
 
--- Ticket sahibi (anonim ise yalnizca uploader oturum guvenlik token'i ile)
--- veya admin okur. Bu projede admin gorur, kullanici kendi ekini gorur.
+drop policy if exists "support_attachments: owner or admin read" on support_attachments;
 create policy "support_attachments: owner or admin read"
   on support_attachments for select
   using (
@@ -45,6 +49,7 @@ create policy "support_attachments: owner or admin read"
     )
   );
 
+drop policy if exists "support_attachments: owner insert" on support_attachments;
 create policy "support_attachments: owner insert"
   on support_attachments for insert
   with check (
@@ -55,12 +60,13 @@ create policy "support_attachments: owner insert"
     )
   );
 
+drop policy if exists "support_attachments: admin delete" on support_attachments;
 create policy "support_attachments: admin delete"
   on support_attachments for delete
   using (is_admin(auth.uid()));
 
 -- Storage policy'leri (bucket: support-attachments)
--- Path: {user_id_or_anon}/{ticket_id}/{filename}
+drop policy if exists "support-attachments: authenticated upload" on storage.objects;
 create policy "support-attachments: authenticated upload"
   on storage.objects for insert
   with check (
@@ -71,6 +77,7 @@ create policy "support-attachments: authenticated upload"
     )
   );
 
+drop policy if exists "support-attachments: owner or admin read" on storage.objects;
 create policy "support-attachments: owner or admin read"
   on storage.objects for select
   using (
@@ -81,6 +88,7 @@ create policy "support-attachments: owner or admin read"
     )
   );
 
+drop policy if exists "support-attachments: admin delete" on storage.objects;
 create policy "support-attachments: admin delete"
   on storage.objects for delete
   using (bucket_id = 'support-attachments' and is_admin(auth.uid()));

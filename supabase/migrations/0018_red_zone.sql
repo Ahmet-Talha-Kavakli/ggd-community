@@ -2,6 +2,7 @@
 -- Kirmizi Alan — evrensel ban listesi
 -- Bizim lobimizden bagimsiz; hicbir lobiye girmemesi gereken oyuncular.
 -- Public read, admin write.
+-- Idempotent: tekrar calistirilabilir.
 -- =============================================================================
 
 create table if not exists red_zone (
@@ -24,22 +25,27 @@ create index if not exists red_zone_active_idx on red_zone(is_active);
 
 alter table red_zone enable row level security;
 
+drop policy if exists "red_zone: public read active" on red_zone;
 create policy "red_zone: public read active"
   on red_zone for select
   using (is_active = true);
 
+drop policy if exists "red_zone: admin read all" on red_zone;
 create policy "red_zone: admin read all"
   on red_zone for select
   using (is_admin(auth.uid()));
 
+drop policy if exists "red_zone: admin insert" on red_zone;
 create policy "red_zone: admin insert"
   on red_zone for insert
   with check (is_admin(auth.uid()));
 
+drop policy if exists "red_zone: admin update" on red_zone;
 create policy "red_zone: admin update"
   on red_zone for update
   using (is_admin(auth.uid()));
 
+drop policy if exists "red_zone: admin delete" on red_zone;
 create policy "red_zone: admin delete"
   on red_zone for delete
   using (is_admin(auth.uid()));
