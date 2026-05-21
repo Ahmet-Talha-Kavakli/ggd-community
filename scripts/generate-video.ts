@@ -95,6 +95,30 @@ const TARGETS: Record<string, VideoTarget> = {
     aspectRatio: "16:9",
     resolution: "720p",
   },
+  "auth-giris": {
+    name: "Giriş sayfası video — yalnız kaz bekleyen (4sn, 1:1)",
+    prompt:
+      "A single elegant white goose standing serenely waiting in centered " +
+      "composition, gently breathing with subtle slow head turn, soft pastel " +
+      "emerald green gradient background, contemplative welcoming mood, " +
+      "square 1:1 framing, " + COMMON_STYLE,
+    outPath: "public/auth-giris-video.mp4",
+    duration: "4",
+    aspectRatio: "1:1",
+    resolution: "720p",
+  },
+  "auth-kayit": {
+    name: "Kayıt sayfası video — davetkar grup (4sn, 1:1)",
+    prompt:
+      "Three elegant white geese standing close together in square framing, " +
+      "subtle independent head movements as if welcoming a new member, soft " +
+      "pastel emerald green gradient background, warm inviting community " +
+      "mood, square 1:1 composition, " + COMMON_STYLE,
+    outPath: "public/auth-kayit-video.mp4",
+    duration: "4",
+    aspectRatio: "1:1",
+    resolution: "720p",
+  },
 };
 
 async function generate(target: VideoTarget) {

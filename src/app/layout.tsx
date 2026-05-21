@@ -27,42 +27,71 @@ const sora = Sora({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: {
-    default: `${SITE.name} — ${SITE.tagline}`,
+    default: `${SITE.name} | Türk Goose Goose Duck Topluluğu — Toksik Oyunculardan Korun`,
     template: `%s · ${SITE.name}`,
   },
   description: SITE.description,
   applicationName: SITE.name,
   authors: [{ name: SITE.name }],
+  category: "gaming",
+  classification: "Gaming Community Platform",
   keywords: [
     "Goose Goose Duck",
     "GGD",
-    "lobi",
-    "ban",
-    "uyarı",
-    "şikayet",
-    "topluluk",
+    "GGD Türkçe",
+    "GGD topluluk",
+    "GGD lobi",
     "GooseCage",
+    "ban liste",
+    "kara liste",
+    "uyarı sistemi",
+    "şikayet",
+    "toksik oyuncu",
+    "GGD oyuncu sorgu",
+    "GGD User ID sorgu",
+    "GGD Türk topluluk",
+    "Türkçe Goose Goose Duck",
+    "lobi yönetimi",
   ],
+  alternates: {
+    canonical: SITE.url,
+    languages: {
+      "tr-TR": SITE.url,
+    },
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
+  },
   // Favicon ve apple-icon icin Next.js file convention kullaniyoruz:
   // src/app/icon.png + src/app/apple-icon.png otomatik HEAD'e eklenir.
   openGraph: {
     type: "website",
     locale: "tr_TR",
-    title: `${SITE.name} — ${SITE.tagline}`,
+    title: `${SITE.name} | Türk Goose Goose Duck Topluluğu`,
     description: SITE.description,
     siteName: SITE.name,
+    url: SITE.url,
     images: [
       {
         url: "/og.png",
         width: 1200,
         height: 630,
         alt: `${SITE.name} — ${SITE.tagline}`,
+        type: "image/png",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: SITE.name,
+    title: `${SITE.name} | Türk GGD Topluluğu`,
     description: SITE.tagline,
     images: ["/og.png"],
   },
@@ -94,35 +123,50 @@ export default async function RootLayout({
       }}
     >
       <html lang="tr" className={`${sora.variable} h-full antialiased`}>
-        <body className="min-h-full flex flex-col text-ink-900 relative">
-          {/* Aurora gradient — akıcı yeşil katman (belirgin) */}
-          <div
-            aria-hidden
-            className="fixed inset-0 -z-20 pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(135deg, #10b98130 0%, #06b6d445 25%, #10b98135 50%, #34d39945 75%, #10b98130 100%)",
+        <head>
+          {/* Structured data — Google rich results */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@graph": [
+                  {
+                    "@type": "WebSite",
+                    "@id": `${SITE.url}#website`,
+                    url: SITE.url,
+                    name: SITE.name,
+                    description: SITE.description,
+                    inLanguage: "tr-TR",
+                    publisher: { "@id": `${SITE.url}#organization` },
+                    potentialAction: {
+                      "@type": "SearchAction",
+                      target: {
+                        "@type": "EntryPoint",
+                        urlTemplate: `${SITE.url}/sorgu?q={search_term_string}`,
+                      },
+                      "query-input": "required name=search_term_string",
+                    },
+                  },
+                  {
+                    "@type": "Organization",
+                    "@id": `${SITE.url}#organization`,
+                    name: SITE.name,
+                    url: SITE.url,
+                    logo: {
+                      "@type": "ImageObject",
+                      url: `${SITE.url}/og.png`,
+                      width: 1200,
+                      height: 630,
+                    },
+                    description: SITE.description,
+                  },
+                ],
+              }),
             }}
           />
-          {/* Aurora blob accents — büyük yumuşak vurgular */}
-          <div
-            aria-hidden
-            className="fixed inset-0 -z-20 pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(ellipse 70% 50% at 30% 25%, #10b98150 0%, transparent 55%), radial-gradient(ellipse 70% 50% at 70% 75%, #06b6d450 0%, transparent 55%), radial-gradient(ellipse 40% 30% at 80% 20%, #34d39940 0%, transparent 60%)",
-            }}
-          />
-          {/* Topographic izoton hatlar — belirgin */}
-          <div
-            aria-hidden
-            className="fixed inset-0 -z-10 pointer-events-none opacity-45"
-            style={{
-              backgroundImage:
-                "repeating-radial-gradient(circle at 30% 30%, transparent 0, transparent 28px, #047857 28px, #047857 29px), repeating-radial-gradient(circle at 70% 70%, transparent 0, transparent 32px, #047857 32px, #047857 33px)",
-            }}
-          />
-
+        </head>
+        <body className="min-h-full flex flex-col text-ink-900">
           <SiteHeader
             user={
               current

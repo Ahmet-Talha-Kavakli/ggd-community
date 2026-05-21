@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,12 +31,16 @@ export default async function GirisPage() {
             <div className="relative max-w-sm mt-2">
               <div className="absolute -inset-4 bg-brand-500/10 blur-3xl rounded-full" />
               <div className="relative overflow-hidden rounded-2xl border border-brand-200/40 shadow-card aspect-square">
-                <Image
-                  src="/guard.png"
-                  alt="GooseCage"
-                  fill
-                  priority
-                  className="object-cover"
+                <video
+                  src="/auth-giris-video.mp4"
+                  poster="/guard.png"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  aria-label="GooseCage — bekleyen kaz"
+                  className="w-full h-full object-cover block"
                 />
               </div>
             </div>
