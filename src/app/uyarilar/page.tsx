@@ -1,6 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { TagChips } from "@/components/ui/tag-chips";
 import { InitialAvatar } from "@/components/ui/initial-avatar";
@@ -130,6 +132,8 @@ export default async function UyarilarPage() {
         </div>
       </section>
 
+      <WarningSystemSection />
+
       <CtaCard
         title="Kuralları biliyor musun?"
         description="Uyarı almamak için ne yapman gerektiğini bir gözden geçir — basit ve net kurallar."
@@ -139,5 +143,81 @@ export default async function UyarilarPage() {
         tone="ink"
       />
     </>
+  );
+}
+
+function WarningSystemSection() {
+  const steps = [
+    {
+      num: "01",
+      title: "Düşük seviye",
+      desc: "Hafif kural ihlali — örn. nadir küçük çaplı küfür, ufak troll. Sadece bilgilendirme amaçlı.",
+      image: "/goose-curious.png",
+      alt: "Meraklı kaz",
+      tone: "ink",
+    },
+    {
+      num: "02",
+      title: "Orta seviye",
+      desc: "Tekrarlanan rahatsız edici davranış. Yönetim takip eder, üçüncüde otomatik ban gelir.",
+      image: "/goose-warning.png",
+      alt: "Tetikte bekleyen kaz",
+      tone: "warning",
+    },
+    {
+      num: "03",
+      title: "Yüksek seviye",
+      desc: "Ciddi ihlal — hakaret, ırkçılık, sabotaj. Bir sonraki ihlalde direkt kalıcı ban riski.",
+      image: "/goose-megaphone.png",
+      alt: "Megafonlu kaz",
+      tone: "danger",
+    },
+  ];
+
+  return (
+    <section className="container-page py-20 md:py-28">
+      <div className="max-w-2xl mb-12 animate-fade-up">
+        <Badge variant="brand" className="mb-4">
+          Uyarı sistemi
+        </Badge>
+        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-ink-900">
+          3 seviye, net süreç.
+        </h2>
+        <p className="text-lg text-ink-500 mt-4 leading-relaxed">
+          Her uyarı bir öğrenme şansı. Aktif <strong>3 uyarı = otomatik ban</strong>.
+          Sürecimiz şeffaf, kuralı bilen oyuncu rahattır.
+        </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-3">
+        {steps.map((s, i) => (
+          <div
+            key={s.num}
+            className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl border border-ink-200/70 bg-white p-8 lift hover:shadow-float hover:border-warning-200 transition-all`}
+          >
+            <div className="absolute -top-2 right-4 text-[88px] font-bold text-warning-50 leading-none select-none pointer-events-none">
+              {s.num}
+            </div>
+
+            <div className="relative h-44 w-full mb-6 -mx-2">
+              <Image
+                src={s.image}
+                alt={s.alt}
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 33vw"
+              />
+            </div>
+
+            <h3 className="relative text-xl font-semibold tracking-tight text-ink-900">
+              {s.title}
+            </h3>
+            <p className="relative mt-3 text-sm text-ink-600 leading-relaxed">
+              {s.desc}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

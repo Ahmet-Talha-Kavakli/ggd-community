@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Hash, Lock, MessagesSquare, Users, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -142,6 +143,8 @@ export default async function ToplulukPage() {
         </div>
       </section>
 
+      <CommunityValuesSection />
+
       <CtaCard
         title="Lobide eğlence başlasın."
         description="Sohbete katıl, yeni etkinlikleri kaçırma, çekilişlere şansını dene."
@@ -150,5 +153,78 @@ export default async function ToplulukPage() {
         image="/goose-friendly.png"
       />
     </>
+  );
+}
+
+function CommunityValuesSection() {
+  const values = [
+    {
+      num: "01",
+      title: "Şeffaflık",
+      desc: "Her ban gerekçeli, audit log herkese açık. Yönetim ne yaptığını gizlemez — topluluk kararları görünür.",
+      image: "/goose-shield.png",
+      alt: "Koruyucu kaz",
+    },
+    {
+      num: "02",
+      title: "Aktif yönetim",
+      desc: "2-5 kişilik moderatör ekip. Her şikayet 48 saat içinde değerlendirilir, kanıtla beraber incelenir.",
+      image: "/goose-thinking.png",
+      alt: "Düşünen kaz",
+    },
+    {
+      num: "03",
+      title: "Sıcak ortam",
+      desc: "Türkçe konuşan, kuralları benimsemiş oyuncular. Yeni gelen rahat eder, eski gelen kuralı bilir.",
+      image: "/goose-friendly.png",
+      alt: "Arkadaş canlısı kaz",
+    },
+  ];
+
+  return (
+    <section className="container-page py-20 md:py-28">
+      <div className="max-w-2xl mb-12 animate-fade-up">
+        <Badge variant="brand" className="mb-4">
+          Topluluk değerleri
+        </Badge>
+        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-ink-900">
+          Neden GooseCage?
+        </h2>
+        <p className="text-lg text-ink-500 mt-4 leading-relaxed">
+          Sıradan bir Discord değil. Toksisiteyi azaltıp Goose Goose Duck
+          oyununu yeniden eğlenceli yapmak için kurulmuş bir topluluk.
+        </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-3">
+        {values.map((v, i) => (
+          <div
+            key={v.num}
+            className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl border border-ink-200/70 bg-white p-8 lift hover:shadow-float hover:border-brand-200 transition-all`}
+          >
+            <div className="absolute -top-2 right-4 text-[88px] font-bold text-brand-50 leading-none select-none pointer-events-none">
+              {v.num}
+            </div>
+
+            <div className="relative h-44 w-full mb-6 -mx-2">
+              <Image
+                src={v.image}
+                alt={v.alt}
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 33vw"
+              />
+            </div>
+
+            <h3 className="relative text-xl font-semibold tracking-tight text-ink-900">
+              {v.title}
+            </h3>
+            <p className="relative mt-3 text-sm text-ink-600 leading-relaxed">
+              {v.desc}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

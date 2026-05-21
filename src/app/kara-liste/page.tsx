@@ -1,6 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { TagChips } from "@/components/ui/tag-chips";
 import { InitialAvatar } from "@/components/ui/initial-avatar";
@@ -147,6 +149,8 @@ export default async function KaraListePage() {
         </div>
       </section>
 
+      <BanReasonsSection />
+
       <CtaCard
         title="Bir oyuncuyu mu araştırmak istiyorsun?"
         description="Nick, ana isim veya User ID — hangisi elindeyse anında sicil sorgusu yapabilirsin."
@@ -155,5 +159,78 @@ export default async function KaraListePage() {
         image="/goose-search.png"
       />
     </>
+  );
+}
+
+function BanReasonsSection() {
+  const reasons = [
+    {
+      num: "01",
+      title: "Toksik davranış",
+      desc: "Sürekli küfür, hakaret, ırkçılık veya taciz. Lobi atmosferini zehirleyen oyuncular kalıcı banlanır.",
+      image: "/goose-warning.png",
+      alt: "Tetikte bekleyen kaz",
+    },
+    {
+      num: "02",
+      title: "Sabotaj / Trolling",
+      desc: "Kasten oyun bozma, masum kill, takım sabotajı. Eğlenceyi kasten boşa düşüren oyuncular cezalandırılır.",
+      image: "/goose-megaphone.png",
+      alt: "Megafonlu kaz",
+    },
+    {
+      num: "03",
+      title: "Cheat / Bot",
+      desc: "Üçüncü parti araç kullanma, otomasyon, exploit. GGD oyununun kurallarını çiğneyen tüm teknik ihlaller.",
+      image: "/goose-curious.png",
+      alt: "Meraklı kaz",
+    },
+  ];
+
+  return (
+    <section className="container-page py-20 md:py-28">
+      <div className="max-w-2xl mb-12 animate-fade-up">
+        <Badge variant="brand" className="mb-4">
+          Ban sebepleri
+        </Badge>
+        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-ink-900">
+          Bu listede neden olunur?
+        </h2>
+        <p className="text-lg text-ink-500 mt-4 leading-relaxed">
+          Kara liste keyfi değil — şeffaf kurallar var. Yönetim ekibi her
+          banı kanıta dayalı verir, audit log tutulur.
+        </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-3">
+        {reasons.map((r, i) => (
+          <div
+            key={r.num}
+            className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl border border-ink-200/70 bg-white p-8 lift hover:shadow-float hover:border-danger-200 transition-all`}
+          >
+            <div className="absolute -top-2 right-4 text-[88px] font-bold text-danger-50 leading-none select-none pointer-events-none">
+              {r.num}
+            </div>
+
+            <div className="relative h-44 w-full mb-6 -mx-2">
+              <Image
+                src={r.image}
+                alt={r.alt}
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 33vw"
+              />
+            </div>
+
+            <h3 className="relative text-xl font-semibold tracking-tight text-ink-900">
+              {r.title}
+            </h3>
+            <p className="relative mt-3 text-sm text-ink-600 leading-relaxed">
+              {r.desc}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
