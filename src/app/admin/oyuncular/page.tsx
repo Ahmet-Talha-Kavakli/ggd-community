@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Plus, UserPlus, Search } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminSearchInput } from "@/components/admin/admin-search-input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,15 +23,34 @@ type PlayerRow = Pick<
   | "created_at"
 >;
 
-export default async function AdminOyuncularPage() {
+interface PageProps {
+  searchParams: Promise<{ q?: string }>;
+}
+
+// Supabase .or() text-based; virgul ve parantez ozel anlam tasiyor — escape et.
+function escapeSearchTerm(term: string): string {
+  return term.replace(/[,()]/g, " ").trim();
+}
+
+export default async function AdminOyuncularPage({ searchParams }: PageProps) {
+  const { q } = await searchParams;
+  const term = q ? escapeSearchTerm(q) : "";
+
   const supabase = await createClient();
-  const { data } = await supabase
+  let query = supabase
     .from("players")
     .select(
       "id, ggd_user_id, nickname, main_name, level, keyword, claimed_profile_id, created_at",
     )
-    .is("claimed_profile_id", null)
-    .order("created_at", { ascending: false });
+    .is("claimed_profile_id", null);
+
+  if (term) {
+    query = query.or(
+      `nickname.ilike.%${term}%,ggd_user_id.ilike.%${term}%,main_name.ilike.%${term}%,keyword.ilike.%${term}%`,
+    );
+  }
+
+  const { data } = await query.order("created_at", { ascending: false });
 
   const players = (data ?? []) as PlayerRow[];
 
@@ -70,19 +90,35 @@ export default async function AdminOyuncularPage() {
         </CardContent>
       </Card>
 
+      <div className="flex flex-col gap-3">
+        <AdminSearchInput placeholder="Oyuncu ara — nick, GGD ID, ana isim, anahtar kelime…" />
+        {term && (
+          <p className="text-xs text-ink-500 px-1">
+            <span className="font-medium text-ink-700">
+              &quot;{term}&quot;
+            </span>{" "}
+            için {players.length} sonuç
+          </p>
+        )}
+      </div>
+
       {players.length === 0 ? (
         <Card>
           <CardContent className="p-10 text-center">
             <UserPlus className="h-8 w-8 mx-auto text-ink-300" />
             <p className="mt-3 text-sm text-ink-500">
-              Henüz oyuncu kaydı yok.
+              {term
+                ? `"${term}" için sonuç bulunamadı.`
+                : "Henüz oyuncu kaydı yok."}
             </p>
-            <Link
-              href="/admin/oyuncular/yeni"
-              className="mt-3 inline-block text-sm font-medium text-brand-700 hover:text-brand-800"
-            >
-              İlk oyuncuyu ekle →
-            </Link>
+            {!term && (
+              <Link
+                href="/admin/oyuncular/yeni"
+                className="mt-3 inline-block text-sm font-medium text-brand-700 hover:text-brand-800"
+              >
+                İlk oyuncuyu ekle →
+              </Link>
+            )}
           </CardContent>
         </Card>
       ) : (

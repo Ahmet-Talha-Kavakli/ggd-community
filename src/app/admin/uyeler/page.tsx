@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Users, ShieldCheck, CheckCircle2, XCircle } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminSearchInput } from "@/components/admin/admin-search-input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,14 +17,32 @@ import type { Profile, UserRole } from "@/lib/supabase/types";
 
 export const metadata = { title: "Admin · Üyeler" };
 
-export default async function AdminUyelerPage() {
+interface PageProps {
+  searchParams: Promise<{ q?: string }>;
+}
+
+function escapeSearchTerm(term: string): string {
+  return term.replace(/[,()]/g, " ").trim();
+}
+
+export default async function AdminUyelerPage({ searchParams }: PageProps) {
+  const { q } = await searchParams;
+  const term = q ? escapeSearchTerm(q) : "";
+
   const supabase = await createClient();
-  const { data } = await supabase
+  let query = supabase
     .from("profiles")
     .select(
       "id, email, nickname, ggd_user_id, ggd_main_name, ggd_level, avatar_path, role, verification_status, joined_at",
-    )
-    .order("joined_at", { ascending: false });
+    );
+
+  if (term) {
+    query = query.or(
+      `nickname.ilike.%${term}%,email.ilike.%${term}%,ggd_user_id.ilike.%${term}%,ggd_main_name.ilike.%${term}%`,
+    );
+  }
+
+  const { data } = await query.order("joined_at", { ascending: false });
 
   const members = (data ?? []) as Pick<
     Profile,
@@ -51,6 +70,18 @@ export default async function AdminUyelerPage() {
         backHref="/admin"
       />
 
+      <div className="flex flex-col gap-3">
+        <AdminSearchInput placeholder="Üye ara — nick, email, GGD ID, ana isim…" />
+        {term && (
+          <p className="text-xs text-ink-500 px-1">
+            <span className="font-medium text-ink-700">
+              &quot;{term}&quot;
+            </span>{" "}
+            için {members.length} sonuç
+          </p>
+        )}
+      </div>
+
       {pending.length > 0 && (
         <section>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-warning-600 mb-3">
@@ -72,7 +103,9 @@ export default async function AdminUyelerPage() {
           <Card>
             <CardContent className="p-10 text-center">
               <Users className="h-8 w-8 mx-auto text-ink-300" />
-              <p className="mt-3 text-sm text-ink-500">Henüz üye yok.</p>
+              <p className="mt-3 text-sm text-ink-500">
+                {term ? `"${term}" için üye bulunamadı.` : "Henüz üye yok."}
+              </p>
             </CardContent>
           </Card>
         ) : (
