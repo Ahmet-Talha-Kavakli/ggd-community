@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
@@ -59,6 +59,16 @@ export function SupportForm({
   );
   const [files, setFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Input.files'i state ile senkron tutar — DataTransfer ile yeniden yaz.
+  // Aksi takdirde "input.value = ''" dosyalari siler ve FormData'da bos kalir.
+  function syncInput(next: File[]) {
+    if (!fileInputRef.current) return;
+    const dt = new DataTransfer();
+    for (const f of next) dt.items.add(f);
+    fileInputRef.current.files = dt.files;
+  }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(e.target.files ?? []);
@@ -71,11 +81,13 @@ export function SupportForm({
       }
     }
     setFiles(merged);
-    e.target.value = ""; // ayni dosya tekrar secilebilsin
+    syncInput(merged);
   }
 
   function removeFile(idx: number) {
-    setFiles(files.filter((_, i) => i !== idx));
+    const next = files.filter((_, i) => i !== idx);
+    setFiles(next);
+    syncInput(next);
   }
 
   if (state.ok) {
@@ -174,6 +186,7 @@ export function SupportForm({
             <span>Foto / video seç (JPG, PNG, WEBP, MP4, WEBM)</span>
           </label>
           <input
+            ref={fileInputRef}
             id="attachments-input"
             name="attachments"
             type="file"

@@ -1,15 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { Paperclip, X, ImageSquare, MusicNotes } from "@phosphor-icons/react/dist/ssr";
+import { useRef, useState } from "react";
+import {
+  Paperclip,
+  X,
+  ImageSquare,
+  MusicNotes,
+} from "@phosphor-icons/react/dist/ssr";
 import { Label } from "@/components/ui/input";
 
 // Admin formlarinda kullanilan dosya yukleme — ban, warning, red zone icin
 // ortak. Form action submit edildiginde 'evidence' name'li input ile gonderir.
 // Server-side action File[] olarak okur, admin-evidence bucket'ina yukler.
 //
-// Visual / Audio ikiye bolundu (ses ayri kutu, daha belirgin). Ikisi de
-// ayni name="evidence" ile gonderir — server tarafi her ikisini de isler.
+// Visual / Audio ikiye bolundu. Ikisi de ayni name="evidence" — server
+// formData.getAll("evidence") ile her ikisini de alir.
+//
+// KRITIK: input.files DataTransfer API ile state'le senkron tutulur.
+// Aksi takdirde "input.value = ''" reset etmek dosyalari siler ve
+// FormData submit'te bos kalir.
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE_MB = 50;
@@ -22,9 +31,17 @@ interface BoxProps {
   inputId: string;
 }
 
+function syncInputFiles(input: HTMLInputElement | null, files: File[]) {
+  if (!input) return;
+  const dt = new DataTransfer();
+  for (const f of files) dt.items.add(f);
+  input.files = dt.files;
+}
+
 function EvidenceBox({ variant, label, inputId }: BoxProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const accept =
     variant === "visual"
@@ -41,6 +58,7 @@ function EvidenceBox({ variant, label, inputId }: BoxProps) {
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(e.target.files ?? []);
     setError(null);
+    // Mevcut state'e ekle (replace degil) — kullanici parça parça secebilir
     const merged = [...files, ...selected].slice(0, MAX_FILES);
     for (const f of merged) {
       if (f.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
@@ -49,11 +67,16 @@ function EvidenceBox({ variant, label, inputId }: BoxProps) {
       }
     }
     setFiles(merged);
-    e.target.value = "";
+    // ONEMLI: input.files'i DataTransfer ile yeniden set et — value=""
+    // diyemeyiz (dosyalari siler), ama DataTransfer ile guncel state
+    // hem render hem form submit icin senkron kalir.
+    syncInputFiles(inputRef.current, merged);
   }
 
   function removeAt(i: number) {
-    setFiles(files.filter((_, idx) => idx !== i));
+    const next = files.filter((_, idx) => idx !== i);
+    setFiles(next);
+    syncInputFiles(inputRef.current, next);
   }
 
   const accentClass =
@@ -86,6 +109,7 @@ function EvidenceBox({ variant, label, inputId }: BoxProps) {
         <span className="flex-1">{ctaText}</span>
       </label>
       <input
+        ref={inputRef}
         id={inputId}
         name="evidence"
         type="file"
@@ -98,7 +122,7 @@ function EvidenceBox({ variant, label, inputId }: BoxProps) {
         <ul className="mt-2 flex flex-col gap-1.5">
           {files.map((f, i) => (
             <li
-              key={i}
+              key={`${f.name}-${i}`}
               className="flex items-center gap-2 px-3 py-2 rounded-lg bg-ink-50 border border-ink-200 text-sm"
             >
               <Paperclip className="h-3.5 w-3.5 text-ink-500 shrink-0" />
