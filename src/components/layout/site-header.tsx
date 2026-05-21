@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { List, X, Shield, CaretDown } from "@phosphor-icons/react";
+import { List, X, Shield, CaretDown, Warning } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/auth/user-menu";
 import {
@@ -11,6 +11,7 @@ import {
   type NotificationItem,
 } from "@/components/notifications/notification-bell";
 import { Logo } from "@/components/brand/logo";
+import { SearchDock } from "@/components/layout/search-dock";
 import { cn } from "@/lib/utils";
 
 type NavLink = {
@@ -171,10 +172,25 @@ export function SiteHeader({
                 />
               );
             })}
+
+            {/* Sikayet Et — kirmizi danger CTA */}
+            <Link
+              href="/sikayet"
+              className={cn(
+                "ml-1 inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg font-medium transition-all duration-200 border",
+                pathname.startsWith("/sikayet")
+                  ? "bg-danger-50 text-danger-700 border-danger-300"
+                  : "bg-white text-danger-700 border-danger-300 hover:bg-danger-50 hover:border-danger-500",
+              )}
+            >
+              <Warning size={14} weight="duotone" />
+              Şikayet Et
+            </Link>
           </nav>
         </div>
 
         <div className="hidden lg:flex items-center gap-2 shrink-0">
+          <SearchDock />
           {user && notifications && (
             <NotificationBell
               unreadCount={notifications.unreadCount}
@@ -280,6 +296,21 @@ export function SiteHeader({
                 </div>
               );
             })}
+
+            {/* Mobile: Sikayet Et danger CTA */}
+            <Link
+              href="/sikayet"
+              onClick={() => setOpen(false)}
+              className={cn(
+                "px-3 py-2.5 text-sm rounded-lg flex items-center gap-2 font-medium border",
+                pathname.startsWith("/sikayet")
+                  ? "bg-danger-50 text-danger-700 border-danger-300"
+                  : "bg-white text-danger-700 border-danger-300",
+              )}
+            >
+              <Warning size={16} weight="duotone" />
+              Şikayet Et
+            </Link>
 
             {user?.isAdmin && (
               <Link

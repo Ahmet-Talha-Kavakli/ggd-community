@@ -1,19 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import { Paperclip, X } from "lucide-react";
+import { Paperclip, X, ImageSquare, MusicNotes } from "@phosphor-icons/react/dist/ssr";
 import { Label } from "@/components/ui/input";
 
 // Admin formlarinda kullanilan dosya yukleme — ban, warning, red zone icin
 // ortak. Form action submit edildiginde 'evidence' name'li input ile gonderir.
 // Server-side action File[] olarak okur, admin-evidence bucket'ina yukler.
+//
+// Visual / Audio ikiye bolundu (ses ayri kutu, daha belirgin). Ikisi de
+// ayni name="evidence" ile gonderir — server tarafi her ikisini de isler.
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE_MB = 50;
 
-export function EvidenceUpload({ label = "Kanıt (foto/video)" }: { label?: string }) {
+type Variant = "visual" | "audio";
+
+interface BoxProps {
+  variant: Variant;
+  label?: string;
+  inputId: string;
+}
+
+function EvidenceBox({ variant, label, inputId }: BoxProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  const accept =
+    variant === "visual"
+      ? "image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+      : "audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/webm,audio/x-m4a";
+
+  const ctaText =
+    variant === "visual"
+      ? "Foto / video seç (JPG, PNG, MP4, WEBM)"
+      : "Ses dosyası seç (MP3, OGG, WAV, M4A)";
+
+  const Icon = variant === "visual" ? ImageSquare : MusicNotes;
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(e.target.files ?? []);
@@ -33,27 +56,41 @@ export function EvidenceUpload({ label = "Kanıt (foto/video)" }: { label?: stri
     setFiles(files.filter((_, idx) => idx !== i));
   }
 
+  const accentClass =
+    variant === "visual"
+      ? "hover:border-brand-400 hover:bg-brand-50/40"
+      : "hover:border-warning-400 hover:bg-warning-50/40";
+
+  const iconBgClass =
+    variant === "visual"
+      ? "bg-brand-50 text-brand-700"
+      : "bg-warning-50 text-warning-700";
+
   return (
     <div>
-      <Label htmlFor="evidence-input">
+      <Label htmlFor={inputId}>
         {label}{" "}
         <span className="font-normal text-ink-400">
           (opsiyonel · en fazla {MAX_FILES} dosya · max {MAX_FILE_SIZE_MB}MB)
         </span>
       </Label>
       <label
-        htmlFor="evidence-input"
-        className="mt-1 flex items-center justify-center gap-2 h-11 px-4 rounded-xl border border-dashed border-ink-300 bg-ink-50/40 hover:border-brand-400 hover:bg-brand-50/40 cursor-pointer transition-colors text-sm text-ink-600"
+        htmlFor={inputId}
+        className={`mt-1 flex items-center gap-3 h-14 px-4 rounded-xl border border-dashed border-ink-300 bg-ink-50/40 cursor-pointer transition-colors text-sm text-ink-600 ${accentClass}`}
       >
-        <Paperclip className="h-4 w-4" />
-        <span>Foto / video / ses seç (JPG, PNG, MP4, WEBM, MP3, OGG, WAV, M4A)</span>
+        <div
+          className={`grid h-9 w-9 place-items-center rounded-lg ${iconBgClass} shrink-0`}
+        >
+          <Icon size={18} weight="duotone" />
+        </div>
+        <span className="flex-1">{ctaText}</span>
       </label>
       <input
-        id="evidence-input"
+        id={inputId}
         name="evidence"
         type="file"
         multiple
-        accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/webm,audio/x-m4a"
+        accept={accept}
         onChange={handleChange}
         className="hidden"
       />
@@ -82,6 +119,24 @@ export function EvidenceUpload({ label = "Kanıt (foto/video)" }: { label?: stri
         </ul>
       )}
       {error && <p className="mt-1.5 text-xs text-danger-600">{error}</p>}
+    </div>
+  );
+}
+
+export function EvidenceUpload(_props?: { label?: string }) {
+  void _props;
+  return (
+    <div className="flex flex-col gap-4">
+      <EvidenceBox
+        variant="visual"
+        label="Foto / video kanıtı"
+        inputId="evidence-visual"
+      />
+      <EvidenceBox
+        variant="audio"
+        label="Ses kanıtı"
+        inputId="evidence-audio"
+      />
     </div>
   );
 }

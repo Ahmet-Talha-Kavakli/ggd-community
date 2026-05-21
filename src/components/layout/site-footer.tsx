@@ -89,12 +89,11 @@ export function SiteFooter() {
         {/* Sosyal media chips */}
         <div className="flex flex-wrap gap-2.5 justify-center mb-10 pb-8 border-b border-brand-200/40">
           {SOCIAL.map((s) => (
-            <Link
+            <button
+              type="button"
               key={s.name}
-              href={s.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-ink-200 bg-white/70 backdrop-blur hover:bg-white hover:border-ink-300 hover:-translate-y-0.5 transition-all shadow-sm group"
+              onClick={(e) => e.preventDefault()}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-ink-200 bg-white/70 backdrop-blur hover:bg-white hover:border-ink-300 hover:-translate-y-0.5 transition-all shadow-sm group cursor-pointer"
               aria-label={s.name}
             >
               <s.icon
@@ -104,7 +103,7 @@ export function SiteFooter() {
                 className="transition-transform group-hover:scale-110"
               />
               <span className="text-sm font-medium text-ink-700">{s.name}</span>
-            </Link>
+            </button>
           ))}
         </div>
 

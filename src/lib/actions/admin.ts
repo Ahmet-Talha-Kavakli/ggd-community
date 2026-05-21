@@ -880,7 +880,12 @@ async function uploadAdminEvidence(
         ? "warning_id"
         : "red_zone_id";
 
-  const supabase = await createClient();
+  // ONEMLI: Clerk auth → Supabase JWT bridge olmadigi icin Storage RLS'de
+  // auth.uid() yanlis olabilir → upload sessizce basarisiz. requireAdmin()
+  // zaten yukaridaki action'da admin yetkisini Clerk'le dogruladi, burada
+  // service role client guvenli — RLS bypass eder, kanit kayitlari kaybolmaz.
+  const supabase = await createAdminClient();
+
   for (const file of files) {
     if (file.size === 0 || file.size > MAX_EVIDENCE_SIZE) continue;
     const isImage = ALLOWED_IMAGE.includes(file.type);
@@ -900,14 +905,23 @@ async function uploadAdminEvidence(
         upsert: false,
         contentType: file.type,
       });
-    if (uploadError) continue;
+    if (uploadError) {
+      console.error(`[evidence upload] ${target}#${recordId}:`, uploadError);
+      continue;
+    }
 
-    await supabase.from(tableName).insert({
+    const { error: insertError } = await supabase.from(tableName).insert({
       [fkColumn]: recordId,
       storage_path: path,
       media_type: isAudio ? "audio" : isVideo ? "video" : "image",
       file_size_bytes: file.size,
     });
+    if (insertError) {
+      console.error(
+        `[evidence insert] ${target}#${recordId}:`,
+        insertError,
+      );
+    }
   }
 }
 
