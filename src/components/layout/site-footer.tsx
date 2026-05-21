@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Logo } from "@/components/brand/logo";
 import { SITE } from "@/config/site";
 
@@ -41,17 +42,53 @@ export function SiteFooter() {
         className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-brand-500/60 to-transparent"
       />
 
-      <div className="container-page py-16">
+      {/* Üst dekoratif banner — yan yana illustrationlar */}
+      <div className="relative container-page pt-14 pb-10 overflow-hidden">
+        <div className="relative grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-6 items-end opacity-90">
+          {[
+            "/goose-search.png",
+            "/goose-shield.png",
+            "/goose-friendly.png",
+            "/goose-sanctuary.png",
+            "/goose-celebrating.png",
+            "/goose-megaphone.png",
+            "/goose-wise.png",
+          ].map((src, i) => (
+            <div
+              key={src}
+              className={`relative aspect-square w-full ${
+                i >= 3 ? "hidden sm:block" : ""
+              } ${i >= 5 ? "hidden md:block" : ""}`}
+              aria-hidden="true"
+            >
+              <Image
+                src={src}
+                alt=""
+                fill
+                className="object-contain"
+                sizes="80px"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="container-page pb-16">
         <div className="grid gap-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
             <Logo />
             <p className="mt-4 text-sm text-ink-600 max-w-sm leading-relaxed">
               {SITE.description}
             </p>
-            <span className="mt-5 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/60 backdrop-blur px-3 py-1 text-xs font-medium text-brand-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-brand-500 animate-pulse" />
-              Topluluk canlı
-            </span>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/60 backdrop-blur px-3 py-1 text-xs font-medium text-brand-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-brand-500 animate-pulse" />
+                Topluluk canlı
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-ink-200 bg-white/40 backdrop-blur px-3 py-1 text-xs font-medium text-ink-600">
+                🇹🇷 Türkçe topluluk
+              </span>
+            </div>
           </div>
 
           {SECTIONS.map((section) => (

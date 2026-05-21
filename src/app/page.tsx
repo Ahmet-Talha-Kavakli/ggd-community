@@ -31,42 +31,42 @@ export const revalidate = 30; // Anasayfa 30 sn cache (oda kodu, son üyeler iç
 
 const FEATURES = [
   {
-    icon: MagnifyingGlass,
+    image: "/goose-search.png",
     title: "Oyuncu Sorgu",
     description:
       "GGD User ID ile herhangi bir oyuncunun uyarı ve kara liste durumunu anında öğren.",
     href: "/sorgu",
   },
   {
-    icon: ShieldCheck,
+    image: "/goose-shield.png",
     title: "Kara Liste & Uyarılar",
     description:
       "Toksik oyuncuların listesi, gerekçeli ban kayıtları ve uyarı geçmişi.",
     href: "/kara-liste",
   },
   {
-    icon: Warning,
+    image: "/goose-report.png",
     title: "Şikayet Sistemi",
     description:
       "Kanıt yükleyerek (foto/video) oyuncuları yönetime şikayet et. Şeffaf süreç.",
     href: "/sikayet",
   },
   {
-    icon: ChatsCircle,
+    image: "/goose-friendly.png",
     title: "Topluluk Sohbeti",
     description:
       "Kanallı yapı ile oyuncularla anlık sohbet et, lobi ara, deneyim paylaş.",
     href: "/topluluk",
   },
   {
-    icon: Megaphone,
+    image: "/goose-megaphone.png",
     title: "Duyurular",
     description:
       "Yönetimden gelen güncel duyurular, kural değişiklikleri ve etkinlikler.",
     href: "/duyurular",
   },
   {
-    icon: UserPlus,
+    image: "/goose-celebrating.png",
     title: "Üye Kaydı",
     description:
       "Topluluğun bir parçası ol, GGD Friend Code ile kayıt ol.",
@@ -428,8 +428,14 @@ export default async function HomePage() {
                 className={`animate-fade-up stagger-${Math.min(i + 1, 6)} h-full lift hover:shadow-float hover:border-brand-200`}
               >
                 <CardContent className="p-7">
-                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-700 group-hover:bg-brand-600 group-hover:text-white transition-colors duration-300">
-                    <f.icon size={22} weight="duotone" />
+                  <div className="relative h-14 w-14 overflow-hidden rounded-2xl bg-brand-50/60 group-hover:bg-brand-100 transition-colors duration-300">
+                    <Image
+                      src={f.image}
+                      alt={f.title}
+                      fill
+                      className="object-contain p-1.5 group-hover:scale-110 transition-transform duration-300"
+                      sizes="56px"
+                    />
                   </div>
                   <h3 className="mt-5 text-lg font-semibold text-ink-900 tracking-tight">
                     {f.title}
