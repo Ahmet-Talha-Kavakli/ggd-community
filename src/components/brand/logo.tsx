@@ -26,7 +26,7 @@ export function Logo({
   const inner = (
     <div
       className={cn(
-        "inline-flex items-center gap-2.5 font-semibold tracking-tight",
+        "flex items-center gap-2.5 font-semibold tracking-tight",
         className,
       )}
     >
@@ -45,7 +45,9 @@ export function Logo({
         />
       </span>
       {showName && (
-        <span className={cn("text-ink-900", textSize)}>{SITE.name}</span>
+        <span className={cn("text-ink-900 leading-none", textSize)}>
+          {SITE.name}
+        </span>
       )}
     </div>
   );

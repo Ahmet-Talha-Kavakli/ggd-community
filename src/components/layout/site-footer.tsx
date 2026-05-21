@@ -42,20 +42,6 @@ export function SiteFooter() {
         className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-brand-500/60 to-transparent"
       />
 
-      {/* Atmosferik arka plan kaz silueti — sağ tarafta, silik, dekoratif */}
-      <div
-        aria-hidden="true"
-        className="absolute right-0 bottom-0 w-[500px] h-[500px] md:w-[700px] md:h-[700px] pointer-events-none opacity-[0.06] select-none"
-      >
-        <Image
-          src="/goose-sanctuary.png"
-          alt=""
-          fill
-          className="object-contain object-bottom-right"
-          sizes="700px"
-        />
-      </div>
-
       <div className="relative container-page py-16">
         <div className="grid gap-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
