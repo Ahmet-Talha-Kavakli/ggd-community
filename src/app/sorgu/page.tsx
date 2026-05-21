@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { TagChips } from "@/components/ui/tag-chips";
 import { PageHero } from "@/components/layout/page-hero";
 import { CtaCard } from "@/components/layout/cta-card";
+import { EvidenceGrid } from "@/components/sorgu/evidence-grid";
 import { TONE_STYLES, type Tone } from "@/lib/card-tones";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
@@ -798,6 +799,11 @@ async function DetailView({
       iconColor: "text-danger-600",
       stamp: "text-danger-700",
       accent: "text-danger-700",
+      banner:
+        "bg-linear-to-r from-danger-600 via-danger-500 to-danger-600 text-white border-danger-700",
+      bannerText: "text-white",
+      bannerSub: "text-danger-100",
+      cardBorder: "border-danger-500",
     },
     warning: {
       iconBg: "bg-warning-50",
@@ -805,6 +811,11 @@ async function DetailView({
       iconColor: "text-warning-600",
       stamp: "text-warning-700",
       accent: "text-warning-700",
+      banner:
+        "bg-linear-to-r from-warning-500 via-warning-400 to-warning-500 text-white border-warning-600",
+      bannerText: "text-white",
+      bannerSub: "text-warning-100",
+      cardBorder: "border-warning-500",
     },
     brand: {
       iconBg: "bg-brand-50",
@@ -812,6 +823,11 @@ async function DetailView({
       iconColor: "text-brand-700",
       stamp: "text-brand-700",
       accent: "text-brand-700",
+      banner:
+        "bg-linear-to-r from-brand-600 via-brand-500 to-brand-600 text-white border-brand-700",
+      bannerText: "text-white",
+      bannerSub: "text-brand-100",
+      cardBorder: "border-brand-500",
     },
     default: {
       iconBg: "bg-ink-100",
@@ -819,6 +835,11 @@ async function DetailView({
       iconColor: "text-ink-700",
       stamp: "text-ink-700",
       accent: "text-ink-700",
+      banner:
+        "bg-linear-to-r from-ink-700 via-ink-600 to-ink-700 text-white border-ink-800",
+      bannerText: "text-white",
+      bannerSub: "text-ink-300",
+      cardBorder: "border-ink-400",
     },
   }[status.tone];
 
@@ -918,51 +939,63 @@ async function DetailView({
         <FuzzySuggestionBox query={query} suggestions={fuzzySuggestions} />
       )}
       {/* Kimlik kart — GooseCage Oyuncu Sicili (tek buyuk kart) */}
-      <div className="relative overflow-hidden rounded-2xl bg-white border-2 border-ink-900 shadow-card">
-        {/* Üst şerit */}
-        <div className="bg-linear-to-b from-ink-50 to-white px-2 py-1 border-b border-ink-900">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-ink-400 text-center">
-            GooseCage · Oyuncu Sicili
-          </p>
+      <div
+        className={`relative overflow-hidden rounded-2xl bg-white border-2 ${idCardTone.cardBorder} shadow-card`}
+      >
+        {/* Üst banner — duruma gore tone-renkli, kalin */}
+        <div
+          className={`relative px-5 py-3 border-b-2 ${idCardTone.banner}`}
+        >
+          {/* Dekoratif noise/highlight */}
+          <div
+            aria-hidden
+            className="absolute inset-0 opacity-25 mix-blend-overlay [background:radial-gradient(80%_60%_at_50%_0%,#ffffff_0%,transparent_60%)]"
+          />
+          <div className="relative flex items-center justify-between gap-3">
+            <p
+              className={`text-[10px] font-bold uppercase tracking-[0.3em] ${idCardTone.bannerSub}`}
+            >
+              GooseCage · Oyuncu Sicili
+            </p>
+            <span
+              className={`inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider ${idCardTone.bannerText}`}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-white/80" />
+              {stampLabel}
+            </span>
+          </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-6 p-6">
-          {/* Sol: ikon + sicil rozeti + GGD ID */}
-          <div className="flex sm:flex-col items-start sm:items-center gap-3 sm:gap-2 sm:shrink-0 sm:w-32">
+        <div className="flex flex-col sm:flex-row gap-6 p-7">
+          {/* Sol: buyuk ikon + GGD ID */}
+          <div className="flex sm:flex-col items-start sm:items-center gap-4 sm:gap-3 sm:shrink-0 sm:w-36">
             <div
-              className={`grid h-20 w-20 place-items-center rounded-2xl ${idCardTone.iconBg} border-2 ${idCardTone.iconBorder}`}
+              className={`grid h-24 w-24 place-items-center rounded-3xl ${idCardTone.iconBg} border-2 ${idCardTone.iconBorder} shadow-sm`}
             >
-              <status.Icon className={`h-10 w-10 ${idCardTone.iconColor}`} />
+              <status.Icon className={`h-12 w-12 ${idCardTone.iconColor}`} />
             </div>
-            <div className="flex flex-col items-start sm:items-center gap-1">
-              <span
-                className={`text-[10px] font-bold uppercase tracking-wider ${idCardTone.stamp}`}
+            <div className="sm:text-center">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
+                GGD ID
+              </p>
+              <p
+                className={`font-mono text-sm font-semibold break-all ${
+                  resolvedGgdId ? "text-ink-900" : "text-ink-400"
+                }`}
               >
-                {stampLabel}
-              </span>
-              <div className="sm:text-center">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
-                  GGD ID
-                </p>
-                <p
-                  className={`font-mono text-xs font-semibold break-all ${
-                    resolvedGgdId ? "text-ink-900" : "text-ink-400"
-                  }`}
-                >
-                  {resolvedGgdId ?? "—"}
-                </p>
-              </div>
+                {resolvedGgdId ?? "—"}
+              </p>
             </div>
           </div>
 
           {/* Sağ: bilgi grid + durum */}
           <div className="flex-1 min-w-0">
-            <div className="mb-4 pb-4 border-b border-ink-200">
+            <div className="mb-5 pb-5 border-b border-ink-200">
               <p className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
                 Durum
               </p>
               <p
-                className={`text-xl font-bold ${
+                className={`text-3xl md:text-4xl font-bold tracking-tight leading-tight ${
                   status.tone === "danger"
                     ? "text-danger-700"
                     : status.tone === "warning"
@@ -974,17 +1007,17 @@ async function DetailView({
               >
                 {status.label}
               </p>
-              <p className="text-xs text-ink-500 mt-0.5">{status.desc}</p>
+              <p className="text-sm text-ink-600 mt-1">{status.desc}</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
               {idFields.map((f) => (
                 <div key={f.label}>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
                     {f.label}
                   </p>
                   <p
-                    className={`font-semibold ${
+                    className={`text-base font-semibold ${
                       f.danger ? "text-danger-700" : "text-ink-900"
                     }`}
                   >
@@ -1446,76 +1479,6 @@ function FuzzySuggestionBox({
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function EvidenceGrid({
-  items,
-}: {
-  items: {
-    id: number;
-    url: string | null;
-    media_type: "image" | "video" | "audio";
-  }[];
-}) {
-  const valid = items.filter((e) => e.url);
-  if (valid.length === 0) return null;
-  return (
-    <div className="mt-2 flex flex-wrap gap-2">
-      {valid.map((e) => {
-        if (e.media_type === "audio") {
-          return (
-            <div
-              key={e.id}
-              className="relative h-12 w-56 rounded-lg overflow-hidden border border-ink-200 bg-ink-50 flex items-center px-2 gap-2"
-            >
-              <span className="text-[10px] font-bold uppercase text-ink-500 shrink-0">
-                Ses
-              </span>
-              <audio
-                src={e.url!}
-                controls
-                preload="metadata"
-                className="h-9 flex-1 min-w-0"
-              />
-            </div>
-          );
-        }
-        return (
-          <a
-            key={e.id}
-            href={e.url!}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative block h-20 w-20 rounded-lg overflow-hidden border border-ink-200 bg-ink-50 hover:border-brand-400 transition-colors"
-            title={e.media_type === "video" ? "Video kanıtı" : "Foto kanıtı"}
-          >
-            {e.media_type === "image" ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={e.url!}
-                alt="Kanıt"
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
-            ) : (
-              <video
-                src={e.url!}
-                className="h-full w-full object-cover"
-                muted
-                playsInline
-                preload="metadata"
-              />
-            )}
-            {e.media_type === "video" && (
-              <span className="absolute bottom-1 right-1 text-[10px] font-bold uppercase bg-black/60 text-white px-1.5 py-0.5 rounded">
-                VID
-              </span>
-            )}
-          </a>
-        );
-      })}
     </div>
   );
 }

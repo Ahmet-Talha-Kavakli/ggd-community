@@ -172,24 +172,23 @@ export function SiteHeader({
                 />
               );
             })}
-
-            {/* Sikayet Et — kirmizi danger CTA */}
-            <Link
-              href="/sikayet"
-              className={cn(
-                "ml-1 inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg font-medium transition-all duration-200 border",
-                pathname.startsWith("/sikayet")
-                  ? "bg-danger-50 text-danger-700 border-danger-300"
-                  : "bg-white text-danger-700 border-danger-300 hover:bg-danger-50 hover:border-danger-500",
-              )}
-            >
-              <Warning size={14} weight="duotone" />
-              Şikayet Et
-            </Link>
           </nav>
         </div>
 
         <div className="hidden lg:flex items-center gap-2 shrink-0">
+          {/* Sikayet Et — kirmizi danger CTA, search'in solunda */}
+          <Link
+            href="/sikayet"
+            className={cn(
+              "inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg font-medium transition-all duration-200 border",
+              pathname.startsWith("/sikayet")
+                ? "bg-danger-50 text-danger-700 border-danger-300"
+                : "bg-white text-danger-700 border-danger-300 hover:bg-danger-50 hover:border-danger-500",
+            )}
+          >
+            <Warning size={14} weight="duotone" />
+            Şikayet Et
+          </Link>
           <SearchDock />
           {user && notifications && (
             <NotificationBell
