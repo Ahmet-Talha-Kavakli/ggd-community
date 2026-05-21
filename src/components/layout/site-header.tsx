@@ -65,20 +65,6 @@ export function SiteHeader({ user }: SiteHeaderProps) {
         </nav>
 
         <div className="hidden xl:flex items-center gap-2 shrink-0 justify-self-end">
-          {user?.isAdmin && (
-            <Link
-              href="/admin"
-              className={cn(
-                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-200 shadow-sm",
-                pathname.startsWith("/admin")
-                  ? "bg-brand-700 text-white"
-                  : "bg-brand-600 text-white hover:bg-brand-700",
-              )}
-            >
-              <Shield size={14} weight="bold" />
-              Admin
-            </Link>
-          )}
           {user ? (
             <UserMenu {...user} />
           ) : (
@@ -92,6 +78,20 @@ export function SiteHeader({ user }: SiteHeaderProps) {
                 <Button size="sm">Kayıt Ol</Button>
               </Link>
             </>
+          )}
+          {user?.isAdmin && (
+            <Link
+              href="/admin"
+              className={cn(
+                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-200 shadow-sm",
+                pathname.startsWith("/admin")
+                  ? "bg-brand-700 text-white"
+                  : "bg-brand-600 text-white hover:bg-brand-700",
+              )}
+            >
+              <Shield size={14} weight="bold" />
+              Admin
+            </Link>
           )}
         </div>
 
