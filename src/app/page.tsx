@@ -428,7 +428,7 @@ export default async function HomePage() {
                 className={`animate-fade-up stagger-${Math.min(i + 1, 6)} h-full lift hover:shadow-float hover:border-brand-200`}
               >
                 <CardContent className="p-7">
-                  <div className="relative h-14 w-14 overflow-hidden rounded-2xl bg-brand-50/60 group-hover:bg-brand-100 transition-colors duration-300">
+                  <div className="relative h-14 w-14 overflow-hidden rounded-full bg-brand-50/60 group-hover:bg-brand-100 transition-colors duration-300">
                     <Image
                       src={f.image}
                       alt={f.title}

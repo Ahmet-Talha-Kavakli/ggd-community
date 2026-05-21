@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Bell } from "@phosphor-icons/react";
+import { Bell, Check, X, Trash } from "@phosphor-icons/react";
 import {
   markNotificationReadAction,
   markAllNotificationsReadAction,
+  deleteNotificationAction,
+  deleteAllNotificationsAction,
 } from "@/lib/actions/notifications";
 import { cn } from "@/lib/utils";
 
@@ -73,16 +75,30 @@ export function NotificationBell({
         <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-ink-200 bg-white shadow-float overflow-hidden animate-scale-in origin-top-right">
           <div className="flex items-center justify-between px-4 py-3 border-b border-ink-200/70">
             <p className="text-sm font-semibold text-ink-900">Bildirimler</p>
-            {unreadCount > 0 && (
-              <form action={markAllNotificationsReadAction}>
-                <button
-                  type="submit"
-                  className="text-xs text-brand-700 hover:text-brand-800 font-medium"
-                >
-                  Tümünü okundu
-                </button>
-              </form>
-            )}
+            <div className="flex items-center gap-3">
+              {unreadCount > 0 && (
+                <form action={markAllNotificationsReadAction}>
+                  <button
+                    type="submit"
+                    className="text-xs text-brand-700 hover:text-brand-800 font-medium"
+                  >
+                    Tümünü okundu
+                  </button>
+                </form>
+              )}
+              {items.length > 0 && (
+                <form action={deleteAllNotificationsAction}>
+                  <button
+                    type="submit"
+                    aria-label="Tümünü sil"
+                    className="text-xs text-ink-500 hover:text-danger-600 font-medium inline-flex items-center gap-1"
+                  >
+                    <Trash size={12} weight="regular" />
+                    Sil
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
 
           {items.length === 0 ? (
@@ -115,12 +131,12 @@ export function NotificationBell({
                   <li
                     key={n.id}
                     className={cn(
-                      "border-b border-ink-100 last:border-b-0",
+                      "group relative border-b border-ink-100 last:border-b-0",
                       unread && "bg-brand-50/40",
                     )}
                   >
                     <Wrapper>
-                      <div className="flex gap-3 px-4 py-3 hover:bg-ink-50 transition-colors">
+                      <div className="flex gap-3 px-4 py-3 pr-16 hover:bg-ink-50 transition-colors">
                         <span
                           className={cn(
                             "mt-1.5 h-2 w-2 shrink-0 rounded-full",
@@ -140,21 +156,32 @@ export function NotificationBell({
                             {timeAgo(n.created_at)}
                           </p>
                         </div>
-                        {unread && (
-                          <form action={markNotificationReadAction}>
-                            <input type="hidden" name="id" value={n.id} />
-                            <button
-                              type="submit"
-                              onClick={(e) => e.stopPropagation()}
-                              aria-label="Okundu işaretle"
-                              className="text-xs text-ink-400 hover:text-brand-700"
-                            >
-                              ✓
-                            </button>
-                          </form>
-                        )}
                       </div>
                     </Wrapper>
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-white/95 backdrop-blur rounded-lg px-1 py-1 shadow-sm border border-ink-200/60">
+                      {unread && (
+                        <form action={markNotificationReadAction}>
+                          <input type="hidden" name="id" value={n.id} />
+                          <button
+                            type="submit"
+                            aria-label="Okundu işaretle"
+                            className="grid h-6 w-6 place-items-center rounded text-ink-500 hover:bg-brand-50 hover:text-brand-700 transition-colors"
+                          >
+                            <Check size={12} weight="bold" />
+                          </button>
+                        </form>
+                      )}
+                      <form action={deleteNotificationAction}>
+                        <input type="hidden" name="id" value={n.id} />
+                        <button
+                          type="submit"
+                          aria-label="Sil"
+                          className="grid h-6 w-6 place-items-center rounded text-ink-500 hover:bg-danger-50 hover:text-danger-600 transition-colors"
+                        >
+                          <X size={12} weight="bold" />
+                        </button>
+                      </form>
+                    </div>
                   </li>
                 );
               })}

@@ -94,7 +94,7 @@ export default async function RootLayout({
       }}
     >
       <html lang="tr" className={`${sora.variable} h-full antialiased`}>
-        <body className="min-h-full flex flex-col bg-white text-ink-900">
+        <body className="min-h-full flex flex-col bg-linear-to-b from-white via-brand-50/15 to-brand-50/25 text-ink-900">
           <SiteHeader
             user={
               current

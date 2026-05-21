@@ -42,38 +42,21 @@ export function SiteFooter() {
         className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-brand-500/60 to-transparent"
       />
 
-      {/* Üst dekoratif banner — yan yana illustrationlar */}
-      <div className="relative container-page pt-14 pb-10 overflow-hidden">
-        <div className="relative grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-6 items-end opacity-90">
-          {[
-            "/goose-search.png",
-            "/goose-shield.png",
-            "/goose-friendly.png",
-            "/goose-sanctuary.png",
-            "/goose-celebrating.png",
-            "/goose-megaphone.png",
-            "/goose-wise.png",
-          ].map((src, i) => (
-            <div
-              key={src}
-              className={`relative aspect-square w-full ${
-                i >= 3 ? "hidden sm:block" : ""
-              } ${i >= 5 ? "hidden md:block" : ""}`}
-              aria-hidden="true"
-            >
-              <Image
-                src={src}
-                alt=""
-                fill
-                className="object-contain"
-                sizes="80px"
-              />
-            </div>
-          ))}
-        </div>
+      {/* Atmosferik arka plan kaz silueti — sağ tarafta, silik, dekoratif */}
+      <div
+        aria-hidden="true"
+        className="absolute right-0 bottom-0 w-[500px] h-[500px] md:w-[700px] md:h-[700px] pointer-events-none opacity-[0.06] select-none"
+      >
+        <Image
+          src="/goose-sanctuary.png"
+          alt=""
+          fill
+          className="object-contain object-bottom-right"
+          sizes="700px"
+        />
       </div>
 
-      <div className="container-page pb-16">
+      <div className="relative container-page py-16">
         <div className="grid gap-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
             <Logo />

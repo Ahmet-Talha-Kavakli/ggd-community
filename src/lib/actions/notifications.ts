@@ -41,3 +41,28 @@ export async function markAllNotificationsReadAction() {
     .is("read_at", null);
   revalidatePath("/");
 }
+
+export async function deleteNotificationAction(formData: FormData) {
+  const id = Number(formData.get("id"));
+  if (!id) return;
+  const profileId = await getCurrentProfileId();
+  if (!profileId) return;
+  const supabase = await createAdminClient();
+  await supabase
+    .from("notifications")
+    .delete()
+    .eq("id", id)
+    .eq("profile_id", profileId);
+  revalidatePath("/");
+}
+
+export async function deleteAllNotificationsAction() {
+  const profileId = await getCurrentProfileId();
+  if (!profileId) return;
+  const supabase = await createAdminClient();
+  await supabase
+    .from("notifications")
+    .delete()
+    .eq("profile_id", profileId);
+  revalidatePath("/");
+}
