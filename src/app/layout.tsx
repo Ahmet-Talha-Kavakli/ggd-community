@@ -95,31 +95,31 @@ export default async function RootLayout({
     >
       <html lang="tr" className={`${sora.variable} h-full antialiased`}>
         <body className="min-h-full flex flex-col text-ink-900 relative">
-          {/* Aurora gradient — akıcı yeşil katman */}
+          {/* Aurora gradient — akıcı yeşil katman (belirgin) */}
           <div
             aria-hidden
             className="fixed inset-0 -z-20 pointer-events-none"
             style={{
               background:
-                "linear-gradient(135deg, #10b98115 0%, #06b6d422 25%, #10b98118 50%, #34d39922 75%, #10b98115 100%)",
+                "linear-gradient(135deg, #10b98130 0%, #06b6d445 25%, #10b98135 50%, #34d39945 75%, #10b98130 100%)",
             }}
           />
-          {/* Aurora blob accents */}
+          {/* Aurora blob accents — büyük yumuşak vurgular */}
           <div
             aria-hidden
-            className="fixed inset-0 -z-20 pointer-events-none opacity-50"
+            className="fixed inset-0 -z-20 pointer-events-none"
             style={{
               background:
-                "radial-gradient(ellipse 60% 40% at 30% 30%, #10b98130 0%, transparent 50%), radial-gradient(ellipse 60% 40% at 70% 70%, #06b6d430 0%, transparent 50%)",
+                "radial-gradient(ellipse 70% 50% at 30% 25%, #10b98150 0%, transparent 55%), radial-gradient(ellipse 70% 50% at 70% 75%, #06b6d450 0%, transparent 55%), radial-gradient(ellipse 40% 30% at 80% 20%, #34d39940 0%, transparent 60%)",
             }}
           />
-          {/* Topographic izoton hatlar */}
+          {/* Topographic izoton hatlar — belirgin */}
           <div
             aria-hidden
-            className="fixed inset-0 -z-10 pointer-events-none opacity-25"
+            className="fixed inset-0 -z-10 pointer-events-none opacity-45"
             style={{
               backgroundImage:
-                "repeating-radial-gradient(circle at 30% 30%, transparent 0, transparent 28px, #10b98140 28px, #10b98140 29px), repeating-radial-gradient(circle at 70% 70%, transparent 0, transparent 32px, #10b98140 32px, #10b98140 33px)",
+                "repeating-radial-gradient(circle at 30% 30%, transparent 0, transparent 28px, #047857 28px, #047857 29px), repeating-radial-gradient(circle at 70% 70%, transparent 0, transparent 32px, #047857 32px, #047857 33px)",
             }}
           />
 

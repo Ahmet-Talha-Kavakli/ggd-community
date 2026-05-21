@@ -1,4 +1,11 @@
 import Link from "next/link";
+import {
+  DiscordLogo,
+  YoutubeLogo,
+  XLogo,
+  InstagramLogo,
+  TiktokLogo,
+} from "@phosphor-icons/react/dist/ssr";
 import { Logo } from "@/components/brand/logo";
 import { SITE } from "@/config/site";
 
@@ -33,11 +40,11 @@ const SECTIONS = [
 ];
 
 const SOCIAL = [
-  { name: "Discord", href: "#", color: "#5865F2" },
-  { name: "YouTube", href: "#", color: "#FF0000" },
-  { name: "X / Twitter", href: "#", color: "#000000" },
-  { name: "Instagram", href: "#", color: "#E4405F" },
-  { name: "TikTok", href: "#", color: "#FF0050" },
+  { name: "Discord", href: "#", color: "#5865F2", icon: DiscordLogo },
+  { name: "YouTube", href: "#", color: "#FF0000", icon: YoutubeLogo },
+  { name: "X", href: "#", color: "#000000", icon: XLogo },
+  { name: "Instagram", href: "#", color: "#E4405F", icon: InstagramLogo },
+  { name: "TikTok", href: "#", color: "#000000", icon: TiktokLogo },
 ];
 
 export function SiteFooter() {
@@ -91,11 +98,14 @@ export function SiteFooter() {
             <Link
               key={s.name}
               href={s.href}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-ink-200 bg-white/70 backdrop-blur hover:bg-white hover:border-ink-300 hover:-translate-y-0.5 transition-all shadow-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-ink-200 bg-white/70 backdrop-blur hover:bg-white hover:border-ink-300 hover:-translate-y-0.5 transition-all shadow-sm group"
+              aria-label={s.name}
             >
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: s.color }}
+              <s.icon
+                size={18}
+                weight="fill"
+                style={{ color: s.color }}
+                className="transition-transform group-hover:scale-110"
               />
               <span className="text-sm font-medium text-ink-700">{s.name}</span>
             </Link>
