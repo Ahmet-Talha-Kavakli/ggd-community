@@ -235,6 +235,33 @@ export interface SupportAttachment {
   created_at: string;
 }
 
+export interface BanEvidence {
+  id: number;
+  ban_id: number;
+  storage_path: string;
+  media_type: "image" | "video";
+  file_size_bytes: number | null;
+  created_at: string;
+}
+
+export interface WarningEvidence {
+  id: number;
+  warning_id: number;
+  storage_path: string;
+  media_type: "image" | "video";
+  file_size_bytes: number | null;
+  created_at: string;
+}
+
+export interface RedZoneEvidence {
+  id: number;
+  red_zone_id: number;
+  storage_path: string;
+  media_type: "image" | "video";
+  file_size_bytes: number | null;
+  created_at: string;
+}
+
 export interface RedZoneEntry {
   id: number;
   ggd_user_id: string | null;
@@ -274,6 +301,9 @@ export type Database = {
       support_tickets: TableShape<SupportTicket>;
       support_attachments: TableShape<SupportAttachment>;
       red_zone: TableShape<RedZoneEntry>;
+      ban_evidence: TableShape<BanEvidence>;
+      warning_evidence: TableShape<WarningEvidence>;
+      red_zone_evidence: TableShape<RedZoneEvidence>;
       events: TableShape<Event>;
       event_participants: TableShape<EventParticipant>;
     };

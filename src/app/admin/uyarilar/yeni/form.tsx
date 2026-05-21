@@ -5,6 +5,7 @@ import { AlertCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { TagSelector } from "@/components/ui/tag-selector";
+import { EvidenceUpload } from "@/components/admin/evidence-upload";
 import { createWarningAction } from "@/lib/actions/admin";
 import { INITIAL_ADMIN_STATE } from "@/lib/actions/admin-types";
 import { tagsForScope } from "@/lib/preset-tags";
@@ -102,6 +103,8 @@ export function WarningForm({
           En az bir etiket seçmen veya açıklama yazman gerek.
         </p>
       </div>
+
+      <EvidenceUpload label="Kanıt yükle (foto/video)" />
 
       {state.error && (
         <div className="rounded-xl border border-danger-500/20 bg-danger-50 px-4 py-3 text-sm text-danger-700 flex items-start gap-2">

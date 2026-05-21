@@ -9,6 +9,7 @@ import {
   Hash,
   ArrowRight,
   ScrollText,
+  Skull,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -136,6 +137,12 @@ export default async function AdminPage() {
             title="Uyarı Ver"
             desc="Bir oyuncuya uyarı kaydet"
             href="/admin/uyarilar/yeni"
+          />
+          <ActionCard
+            icon={Skull}
+            title="Kırmızı Alan"
+            desc="Evrensel ban listesi yönetimi"
+            href="/admin/kirmizi-alan"
           />
         </div>
       </div>

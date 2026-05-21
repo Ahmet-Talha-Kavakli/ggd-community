@@ -184,6 +184,14 @@ export async function createBanAction(
 
   if (error) return { ok: false, error: error.message };
 
+  const banId = (data as { id: number } | null)?.id;
+  if (banId) {
+    const files = readEvidenceFiles(formData);
+    if (files.length > 0) {
+      await uploadAdminEvidence("ban", banId, files);
+    }
+  }
+
   await logAuditEvent({
     actorId: current.user.id,
     action: "ban.create",
@@ -320,6 +328,14 @@ export async function createWarningAction(
     .select("id")
     .single();
   if (error) return { ok: false, error: error.message };
+
+  const warningId = (data as { id: number } | null)?.id;
+  if (warningId) {
+    const files = readEvidenceFiles(formData);
+    if (files.length > 0) {
+      await uploadAdminEvidence("warning", warningId, files);
+    }
+  }
 
   // Uyarilan oyuncu sitemize kayitliysa email + in-app bildirim
   if (parsed.data.ggd_user_id) {
@@ -682,4 +698,218 @@ export async function resolveReportAction(
   revalidatePath("/admin/sikayetler");
   revalidatePath(`/admin/sikayetler/${parsed.data.report_id}`);
   return { ok: true, message: "Şikayet güncellendi." };
+}
+
+// =============================================================================
+// Admin evidence upload — ban / warning / red_zone icin ortak helper
+// admin-evidence bucket'i kullanir. Best-effort: upload basarisizsa
+// ana kayit zaten olusmus, evidence eklenmeyebilir.
+// =============================================================================
+
+const ALLOWED_IMAGE = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const ALLOWED_VIDEO = ["video/mp4", "video/webm", "video/quicktime"];
+const MAX_EVIDENCE_FILES = 5;
+const MAX_EVIDENCE_SIZE = 50 * 1024 * 1024;
+
+type EvidenceTarget = "ban" | "warning" | "red-zone";
+
+async function uploadAdminEvidence(
+  target: EvidenceTarget,
+  recordId: number,
+  files: File[],
+): Promise<void> {
+  if (files.length === 0) return;
+  const tableName =
+    target === "ban"
+      ? "ban_evidence"
+      : target === "warning"
+        ? "warning_evidence"
+        : "red_zone_evidence";
+  const fkColumn =
+    target === "ban"
+      ? "ban_id"
+      : target === "warning"
+        ? "warning_id"
+        : "red_zone_id";
+
+  const supabase = await createClient();
+  for (const file of files) {
+    if (file.size === 0 || file.size > MAX_EVIDENCE_SIZE) continue;
+    if (
+      !ALLOWED_IMAGE.includes(file.type) &&
+      !ALLOWED_VIDEO.includes(file.type)
+    )
+      continue;
+
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
+    const path = `${target}/${recordId}/${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("admin-evidence")
+      .upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
+      });
+    if (uploadError) continue;
+
+    await supabase.from(tableName).insert({
+      [fkColumn]: recordId,
+      storage_path: path,
+      media_type: ALLOWED_VIDEO.includes(file.type) ? "video" : "image",
+      file_size_bytes: file.size,
+    });
+  }
+}
+
+function readEvidenceFiles(formData: FormData): File[] {
+  return formData.getAll("evidence").filter((f): f is File => {
+    return (
+      typeof f === "object" &&
+      f !== null &&
+      "size" in f &&
+      (f as File).size > 0
+    );
+  });
+}
+
+// =============================================================================
+// Red Zone — Kirmizi Alan CRUD
+// =============================================================================
+const RedZoneSchema = z.object({
+  ggd_user_id: z
+    .string()
+    .max(32)
+    .optional()
+    .transform((v) => v?.trim() || null),
+  nickname: z.string().min(1, "Nickname zorunlu").max(48),
+  main_name: z
+    .string()
+    .max(48)
+    .optional()
+    .transform((v) => v?.trim() || null),
+  reason: z.string().min(3, "Kısa gerekçe zorunlu").max(200),
+  description: z
+    .string()
+    .max(2000)
+    .optional()
+    .transform((v) => v?.trim() || null),
+  source: z
+    .string()
+    .max(80)
+    .optional()
+    .transform((v) => v?.trim() || null),
+  evidence_url: z
+    .string()
+    .max(500)
+    .optional()
+    .transform((v) => v?.trim() || null),
+});
+
+export async function createRedZoneAction(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const current = await requireAdmin();
+  const parsed = RedZoneSchema.safeParse({
+    ggd_user_id: formData.get("ggd_user_id"),
+    nickname: formData.get("nickname"),
+    main_name: formData.get("main_name"),
+    reason: formData.get("reason"),
+    description: formData.get("description"),
+    source: formData.get("source"),
+    evidence_url: formData.get("evidence_url"),
+  });
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {};
+    for (const i of parsed.error.issues)
+      fieldErrors[i.path.join(".")] = i.message;
+    return { ok: false, fieldErrors };
+  }
+
+  const files = readEvidenceFiles(formData);
+  if (files.length > MAX_EVIDENCE_FILES) {
+    return {
+      ok: false,
+      error: `En fazla ${MAX_EVIDENCE_FILES} dosya yükleyebilirsin.`,
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("red_zone")
+    .insert({
+      ggd_user_id: parsed.data.ggd_user_id,
+      nickname: parsed.data.nickname,
+      main_name: parsed.data.main_name,
+      reason: parsed.data.reason,
+      description: parsed.data.description,
+      source: parsed.data.source,
+      evidence_url: parsed.data.evidence_url,
+      added_by: current.user.id,
+      is_active: true,
+    })
+    .select("id")
+    .single();
+
+  if (error) return { ok: false, error: error.message };
+  const redZoneId = (data as { id: number } | null)?.id;
+
+  if (redZoneId) {
+    await uploadAdminEvidence("red-zone", redZoneId, files);
+  }
+
+  await logAuditEvent({
+    actorId: current.user.id,
+    action: "red_zone.create",
+    targetType: "red_zone",
+    targetId: redZoneId,
+    metadata: {
+      nickname: parsed.data.nickname,
+      ggd_user_id: parsed.data.ggd_user_id,
+    },
+  });
+
+  revalidatePath("/kirmizi-alan");
+  revalidatePath("/admin/kirmizi-alan");
+  redirect("/admin/kirmizi-alan");
+}
+
+export async function deactivateRedZoneAction(formData: FormData) {
+  const current = await requireAdmin();
+  const id = Number(formData.get("id"));
+  if (!id) return;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("red_zone")
+    .update({ is_active: false })
+    .eq("id", id);
+  if (error) return;
+  await logAuditEvent({
+    actorId: current.user.id,
+    action: "red_zone.deactivate",
+    targetType: "red_zone",
+    targetId: id,
+  });
+  revalidatePath("/kirmizi-alan");
+  revalidatePath("/admin/kirmizi-alan");
+}
+
+export async function deleteRedZoneAction(formData: FormData) {
+  const current = await requireAdmin();
+  const id = Number(formData.get("id"));
+  if (!id) return;
+  const supabase = await createClient();
+  const { error } = await supabase.from("red_zone").delete().eq("id", id);
+  if (error) return;
+  await logAuditEvent({
+    actorId: current.user.id,
+    action: "red_zone.delete",
+    targetType: "red_zone",
+    targetId: id,
+  });
+  revalidatePath("/kirmizi-alan");
+  revalidatePath("/admin/kirmizi-alan");
 }
