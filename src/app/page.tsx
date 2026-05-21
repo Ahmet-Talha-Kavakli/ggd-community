@@ -259,6 +259,73 @@ export default async function HomePage() {
 
       <PublicStatsWidget />
 
+      <section className="container-page py-20 md:py-28">
+        <div className="max-w-2xl mb-12 animate-fade-up">
+          <Badge variant="brand" className="mb-4">
+            Nasıl çalışır?
+          </Badge>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-ink-900">
+            Toksisiteyi 3 adımda azalt.
+          </h2>
+          <p className="text-lg text-ink-500 mt-4 leading-relaxed">
+            GooseCage sürecini olabildiğince basit tutar — sen oyun keyfine
+            odaklan, biz toksik oyuncuları süzelim.
+          </p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          {[
+            {
+              num: "01",
+              title: "Tanı",
+              desc: "GGD User ID, ana isim veya oyun içi nick ile oyuncunun geçmişini incele. Üyelik gerekmez, herkese açık.",
+              image: "/goose-search.png",
+              alt: "Sorgulayan kaz",
+            },
+            {
+              num: "02",
+              title: "Kanıtla bildir",
+              desc: "Foto / video kanıtla şikayet aç. AI ön analiz yapar, yönetim hızlıca inceleyip ban veya uyarı verir.",
+              image: "/goose-report.png",
+              alt: "Şikayet eden kaz",
+            },
+            {
+              num: "03",
+              title: "Sürünle dön",
+              desc: "Toksik oyuncular kara listeye girer, lobiler temizlenir. Sen sürünle keyifli oyununa geri dönersin.",
+              image: "/goose-sanctuary.png",
+              alt: "Sağlıklı topluluk",
+            },
+          ].map((step, i) => (
+            <div
+              key={step.num}
+              className={`animate-fade-up stagger-${i + 1} relative overflow-hidden rounded-3xl border border-ink-200/70 bg-white p-8 lift hover:shadow-float hover:border-brand-200 transition-all`}
+            >
+              <div className="absolute -top-2 right-4 text-[88px] font-bold text-brand-50 leading-none select-none pointer-events-none">
+                {step.num}
+              </div>
+
+              <div className="relative h-44 w-full mb-6 -mx-2">
+                <Image
+                  src={step.image}
+                  alt={step.alt}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
+              </div>
+
+              <h3 className="relative text-xl font-semibold tracking-tight text-ink-900">
+                {step.title}
+              </h3>
+              <p className="relative mt-3 text-sm text-ink-600 leading-relaxed">
+                {step.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {recentMembers.length > 0 && (
         <section className="container-page py-14">
           <div className="flex items-center justify-between mb-5">
