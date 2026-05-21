@@ -11,7 +11,13 @@ import {
 import { logAuditEvent } from "@/lib/audit";
 import type { AdminActionState } from "./admin-types";
 
-const EVENT_TYPE = ["raffle", "tournament", "community", "other"] as const;
+const EVENT_TYPE = [
+  "raffle",
+  "tournament",
+  "community",
+  "poll",
+  "other",
+] as const;
 const EVENT_STATUS = [
   "draft",
   "published",
@@ -62,6 +68,48 @@ function readEventFormData(formData: FormData) {
   };
 }
 
+function readPollOptions(formData: FormData): string[] {
+  return formData
+    .getAll("poll_option")
+    .map((v) => String(v).trim())
+    .filter((v) => v.length > 0)
+    .slice(0, 8);
+}
+
+async function syncPollOptions(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  eventId: number,
+  type: string,
+  labels: string[],
+  mode: "create" | "edit",
+): Promise<{ ok: boolean; error?: string }> {
+  if (type !== "poll") {
+    // Eger tip artik poll degilse mevcut options'i sil (sessizce)
+    if (mode === "edit") {
+      await supabase.from("poll_options").delete().eq("event_id", eventId);
+    }
+    return { ok: true };
+  }
+  if (labels.length < 2) {
+    return { ok: false, error: "Anket için en az 2 seçenek gerekli." };
+  }
+
+  if (mode === "edit") {
+    // Mevcut option'lari komple yenile (oylar option_id'ye baglı; degisirse oylar
+    // silinir — bilinçli karar, küçük anket icin tolere edilebilir)
+    await supabase.from("poll_options").delete().eq("event_id", eventId);
+  }
+
+  const rows = labels.map((label, i) => ({
+    event_id: eventId,
+    label,
+    position: i,
+  }));
+  const { error } = await supabase.from("poll_options").insert(rows);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
 export async function createEventAction(
   _prev: AdminActionState,
   formData: FormData,
@@ -95,6 +143,22 @@ export async function createEventAction(
   if (error) return { ok: false, error: error.message };
 
   const newId = (data as { id: number } | null)?.id;
+
+  if (newId && parsed.data.type === "poll") {
+    const labels = readPollOptions(formData);
+    const sync = await syncPollOptions(
+      supabase,
+      newId,
+      parsed.data.type,
+      labels,
+      "create",
+    );
+    if (!sync.ok) {
+      // Event olusturuldu ama options eksik — admin sonradan duzeltebilir
+      return { ok: false, error: sync.error };
+    }
+  }
+
   await logAuditEvent({
     actorId: current.user.id,
     action: "event.create",
@@ -145,6 +209,17 @@ export async function updateEventAction(
     .eq("id", parsed.data.id);
 
   if (error) return { ok: false, error: error.message };
+
+  // Poll secenekleri sync (tip degistiyse veya tip poll ise)
+  const labels = readPollOptions(formData);
+  const sync = await syncPollOptions(
+    supabase,
+    parsed.data.id,
+    parsed.data.type,
+    labels,
+    "edit",
+  );
+  if (!sync.ok) return { ok: false, error: sync.error };
 
   await logAuditEvent({
     actorId: current.user.id,
@@ -303,4 +378,50 @@ export async function clearWinnerAction(formData: FormData) {
   });
   revalidatePath(`/etkinlikler/${id}`);
   revalidatePath(`/admin/etkinlikler/${id}`);
+}
+
+// ----------------------------------------------------------------------------
+// Poll vote — kullanici oy verir veya degistirir (oy zaten varsa upsert)
+// ----------------------------------------------------------------------------
+export async function castPollVoteAction(formData: FormData) {
+  const current = await requireApprovedMember();
+  const eventId = Number(formData.get("event_id"));
+  const optionId = Number(formData.get("option_id"));
+  if (!eventId || !optionId) return;
+
+  const supabase = await createClient();
+
+  // Option gerçekten bu event'e ait mi (guvenlik)
+  const { data: opt } = await supabase
+    .from("poll_options")
+    .select("event_id")
+    .eq("id", optionId)
+    .maybeSingle();
+  if (!opt || (opt as { event_id: number }).event_id !== eventId) return;
+
+  // Event aktif mi (taslak/iptal'de oy verilmez)
+  const { data: ev } = await supabase
+    .from("events")
+    .select("status, type")
+    .eq("id", eventId)
+    .maybeSingle();
+  const eventRow = ev as { status: string; type: string } | null;
+  if (
+    !eventRow ||
+    eventRow.type !== "poll" ||
+    ["draft", "completed", "cancelled"].includes(eventRow.status)
+  ) {
+    return;
+  }
+
+  await supabase.from("poll_votes").upsert(
+    {
+      event_id: eventId,
+      option_id: optionId,
+      user_id: current.user.id,
+    },
+    { onConflict: "event_id,user_id" },
+  );
+
+  revalidatePath(`/etkinlikler/${eventId}`);
 }

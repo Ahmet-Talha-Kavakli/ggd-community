@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
-import { AlertCircle, Loader2, Save, Plus, Check } from "lucide-react";
+import { useActionState, useState } from "react";
+import { AlertCircle, Loader2, Save, Plus, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import {
@@ -20,6 +20,7 @@ type EventFormDefaults = {
   ends_at?: string | null;
   prize?: string | null;
   max_participants?: number | null;
+  poll_options?: string[];
 };
 
 // ISO timestamp → datetime-local input formatı (YYYY-MM-DDTHH:mm)
@@ -45,6 +46,24 @@ export function EventForm({
     action,
     INITIAL_ADMIN_STATE,
   );
+
+  const [eventType, setEventType] = useState<string>(defaults.type ?? "raffle");
+  const [pollOptions, setPollOptions] = useState<string[]>(
+    defaults.poll_options && defaults.poll_options.length > 0
+      ? defaults.poll_options
+      : ["", ""],
+  );
+
+  function updateOption(i: number, value: string) {
+    setPollOptions((prev) => prev.map((v, idx) => (idx === i ? value : v)));
+  }
+  function addOption() {
+    if (pollOptions.length < 8) setPollOptions((prev) => [...prev, ""]);
+  }
+  function removeOption(i: number) {
+    if (pollOptions.length > 2)
+      setPollOptions((prev) => prev.filter((_, idx) => idx !== i));
+  }
 
   const selectClass =
     "flex h-11 w-full rounded-xl border border-ink-200 bg-white px-4 text-[15px] text-ink-900 hover:border-ink-300 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
@@ -96,12 +115,14 @@ export function EventForm({
           <select
             id="type"
             name="type"
-            defaultValue={defaults.type ?? "raffle"}
+            value={eventType}
+            onChange={(e) => setEventType(e.target.value)}
             className={selectClass}
           >
             <option value="raffle">Çekiliş</option>
             <option value="tournament">Turnuva</option>
             <option value="community">Topluluk buluşması</option>
+            <option value="poll">Anket</option>
             <option value="other">Diğer</option>
           </select>
         </div>
@@ -183,6 +204,55 @@ export function EventForm({
           className="font-mono"
         />
       </div>
+
+      {eventType === "poll" && (
+        <div className="rounded-2xl border-2 border-dashed border-brand-300 bg-brand-50/30 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <Label className="text-base">Anket seçenekleri</Label>
+              <p className="text-xs text-ink-500 mt-0.5">
+                En az 2, en fazla 8 seçenek. Üyeler birini seçer.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addOption}
+              disabled={pollOptions.length >= 8}
+            >
+              <Plus className="h-3 w-3" />
+              Ekle
+            </Button>
+          </div>
+          <div className="flex flex-col gap-2">
+            {pollOptions.map((opt, i) => (
+              <div key={i} className="flex gap-2 items-center">
+                <span className="text-xs font-bold text-ink-400 w-5 text-center">
+                  {i + 1}.
+                </span>
+                <Input
+                  name="poll_option"
+                  value={opt}
+                  onChange={(e) => updateOption(i, e.target.value)}
+                  placeholder={`Seçenek ${i + 1}`}
+                  maxLength={120}
+                />
+                {pollOptions.length > 2 && (
+                  <button
+                    type="button"
+                    onClick={() => removeOption(i)}
+                    className="text-ink-400 hover:text-danger-600 transition-colors p-2"
+                    aria-label="Sil"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {state.error && (
         <div className="rounded-xl border border-danger-500/20 bg-danger-50 px-4 py-3 text-sm text-danger-700 flex items-start gap-2">

@@ -38,7 +38,7 @@ export default async function AdminEtkinlikDetayPage({
   if (!Number.isFinite(eventId)) notFound();
 
   const supabase = await createClient();
-  const [eventRes, participantsRes] = await Promise.all([
+  const [eventRes, participantsRes, pollOptionsRes] = await Promise.all([
     supabase
       .from("events")
       .select(
@@ -53,10 +53,19 @@ export default async function AdminEtkinlikDetayPage({
       )
       .eq("event_id", eventId)
       .order("joined_at", { ascending: true }),
+    supabase
+      .from("poll_options")
+      .select("label, position")
+      .eq("event_id", eventId)
+      .order("position", { ascending: true }),
   ]);
 
   const event = eventRes.data as unknown as EventDetail | null;
   if (!event) notFound();
+
+  const pollOptionLabels = (
+    (pollOptionsRes.data ?? []) as { label: string; position: number }[]
+  ).map((o) => o.label);
 
   const participants = (participantsRes.data ?? []) as unknown as ParticipantRow[];
   const canPickWinner =
@@ -96,6 +105,7 @@ export default async function AdminEtkinlikDetayPage({
               ends_at: event.ends_at,
               prize: event.prize,
               max_participants: event.max_participants,
+              poll_options: pollOptionLabels,
             }}
           />
         </CardContent>

@@ -6,6 +6,7 @@ import {
   Sparkle,
   ArrowRight,
   Gift,
+  ChartBar,
 } from "@phosphor-icons/react/dist/ssr";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +39,7 @@ const TYPE_META: Record<
   raffle: { label: "Çekiliş", Icon: Gift },
   tournament: { label: "Turnuva", Icon: Trophy },
   community: { label: "Topluluk", Icon: Users },
+  poll: { label: "Anket", Icon: ChartBar },
   other: { label: "Etkinlik", Icon: Sparkle },
 };
 

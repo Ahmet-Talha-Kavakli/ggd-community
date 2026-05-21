@@ -217,11 +217,150 @@ async function SearchDispatcher({
   }
 
   if (hits.length === 0) {
-    // Belki ID exact match (kayıtlı değil ama ban/warning'i var)
-    return <DetailView ggdUserId={query} />;
+    // Belki ID exact match (kayitli degil ama ban/warning'i var) veya
+    // fuzzy match (yazim hatasi) — DetailView icinde kontrol ediliyor.
+    return <DetailView ggdUserId={query} fuzzy />;
   }
 
   return <ResultsList hits={hits} query={query} />;
+}
+
+// ============================================================================
+// Fuzzy match suggestions — "sunu mu demek istediniz?" oneri kutusu
+// ============================================================================
+
+type FuzzySuggestion = {
+  kind: "profile" | "player" | "ban" | "warning";
+  name: string; // gosterilecek isim
+  identifier: string; // tiklayinca aratacagimiz key (nick veya ID)
+  hint?: string; // ek bilgi (ana isim, ggd id)
+};
+
+async function findFuzzySuggestions(
+  supabase: SupabaseClient,
+  query: string,
+): Promise<FuzzySuggestion[]> {
+  if (query.length < 3) return [];
+
+  // Strateji: query'nin ilk 3 karakteri ile prefix-ish ilike ara, sonra
+  // client-side Levenshtein-benzeri scoring ile en yakinlari getir.
+  // pg_trgm migration'i index ekledi (0021) — ileride RPC ile gerçek
+  // similarity yapilabilir, simdilik basit ama etkili yol.
+  const prefix = query.slice(0, 3);
+  const tables = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("nickname, ggd_main_name, ggd_user_id")
+      .or(`nickname.ilike.%${prefix}%,ggd_main_name.ilike.%${prefix}%`)
+      .limit(20),
+    supabase
+      .from("players")
+      .select("nickname, main_name, ggd_user_id")
+      .or(`nickname.ilike.%${prefix}%,main_name.ilike.%${prefix}%`)
+      .limit(20),
+    supabase
+      .from("bans")
+      .select("target_nickname, target_main_name, ggd_user_id")
+      .eq("is_active", true)
+      .ilike("target_nickname", `%${prefix}%`)
+      .limit(20),
+    supabase
+      .from("warnings")
+      .select("target_nickname, target_main_name, ggd_user_id")
+      .eq("is_active", true)
+      .ilike("target_nickname", `%${prefix}%`)
+      .limit(20),
+  ]);
+
+  // Levenshtein-like client-side scoring
+  const qLower = query.toLowerCase();
+  const score = (name: string): number => {
+    const nLower = name.toLowerCase();
+    if (nLower === qLower) return 100;
+    if (nLower.includes(qLower)) return 80;
+    if (qLower.includes(nLower)) return 70;
+    // Karakter ortakligi
+    const common = [...new Set(nLower)].filter((c) =>
+      qLower.includes(c),
+    ).length;
+    const maxLen = Math.max(nLower.length, qLower.length, 1);
+    const lengthSim =
+      1 - Math.abs(nLower.length - qLower.length) / maxLen;
+    return Math.floor(((common / maxLen) * 0.5 + lengthSim * 0.5) * 60);
+  };
+
+  const seen = new Set<string>();
+  const out: (FuzzySuggestion & { score: number })[] = [];
+
+  for (const row of ((tables[0].data ?? []) as {
+    nickname: string;
+    ggd_main_name: string | null;
+    ggd_user_id: string;
+  }[])) {
+    const key = `profile:${row.ggd_user_id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      kind: "profile",
+      name: row.nickname,
+      identifier: row.nickname,
+      hint: row.ggd_main_name ?? undefined,
+      score: Math.max(score(row.nickname), row.ggd_main_name ? score(row.ggd_main_name) : 0),
+    });
+  }
+  for (const row of ((tables[1].data ?? []) as {
+    nickname: string;
+    main_name: string | null;
+    ggd_user_id: string;
+  }[])) {
+    const key = `player:${row.ggd_user_id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      kind: "player",
+      name: row.nickname,
+      identifier: row.nickname,
+      hint: row.main_name ?? undefined,
+      score: Math.max(score(row.nickname), row.main_name ? score(row.main_name) : 0),
+    });
+  }
+  for (const row of ((tables[2].data ?? []) as {
+    target_nickname: string;
+    target_main_name: string | null;
+    ggd_user_id: string | null;
+  }[])) {
+    const key = `ban:${row.target_nickname}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      kind: "ban",
+      name: row.target_nickname,
+      identifier: row.target_nickname,
+      hint: row.target_main_name ?? undefined,
+      score: score(row.target_nickname),
+    });
+  }
+  for (const row of ((tables[3].data ?? []) as {
+    target_nickname: string;
+    target_main_name: string | null;
+    ggd_user_id: string | null;
+  }[])) {
+    const key = `warning:${row.target_nickname}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      kind: "warning",
+      name: row.target_nickname,
+      identifier: row.target_nickname,
+      hint: row.target_main_name ?? undefined,
+      score: score(row.target_nickname),
+    });
+  }
+
+  return out
+    .filter((s) => s.score >= 30)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
 }
 
 // ============================================================================
@@ -385,7 +524,13 @@ function ResultsList({ hits, query }: { hits: SearchHit[]; query: string }) {
 // Detail view — tek bir ggd_user_id için full bilgi
 // ============================================================================
 
-async function DetailView({ ggdUserId }: { ggdUserId: string }) {
+async function DetailView({
+  ggdUserId,
+  fuzzy = false,
+}: {
+  ggdUserId: string;
+  fuzzy?: boolean;
+}) {
   const supabase = await createClient();
   const query = ggdUserId;
   const escaped = query.replace(/[\\%_]/g, "\\$&");
@@ -715,8 +860,19 @@ async function DetailView({ ggdUserId }: { ggdUserId: string }) {
             ? "Oyuncu"
             : "Kayıtsız";
 
+  // "Sunu mu demek istediniz?" fuzzy match - sadece hicbir sonuc yoksa
+  const noMatches =
+    !profile && !player && bans.length === 0 && warnings.length === 0;
+  const fuzzySuggestions =
+    fuzzy && noMatches
+      ? await findFuzzySuggestions(supabase, query)
+      : [];
+
   return (
     <div className="mt-8 flex flex-col gap-5">
+      {fuzzySuggestions.length > 0 && (
+        <FuzzySuggestionBox query={query} suggestions={fuzzySuggestions} />
+      )}
       {/* Kimlik kart — GooseCage Oyuncu Sicili (tek buyuk kart) */}
       <div className="relative overflow-hidden rounded-2xl bg-white border-2 border-ink-900 shadow-card">
         {/* Üst şerit */}
@@ -1155,6 +1311,65 @@ function LegendCards() {
         title="Banlı"
         text="Kara listeye alınmış oyuncu."
       />
+    </div>
+  );
+}
+
+function FuzzySuggestionBox({
+  query,
+  suggestions,
+}: {
+  query: string;
+  suggestions: FuzzySuggestion[];
+}) {
+  const KIND_LABEL: Record<FuzzySuggestion["kind"], string> = {
+    profile: "Üye",
+    player: "Oyuncu",
+    ban: "Banlı",
+    warning: "Uyarılı",
+  };
+  const KIND_TONE: Record<FuzzySuggestion["kind"], string> = {
+    profile: "text-brand-700 bg-brand-50 border-brand-200",
+    player: "text-ink-700 bg-ink-100 border-ink-200",
+    ban: "text-danger-700 bg-danger-50 border-danger-200",
+    warning: "text-warning-700 bg-warning-50 border-warning-200",
+  };
+
+  return (
+    <div className="rounded-2xl border border-ink-900 bg-white p-5 shadow-soft">
+      <div className="flex items-start gap-3">
+        <div className="grid h-9 w-9 place-items-center rounded-xl bg-brand-50 text-brand-700 shrink-0">
+          <Info className="h-4 w-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold text-ink-900">
+            &quot;{query}&quot; için sonuç bulunamadı
+          </h3>
+          <p className="mt-1 text-xs text-ink-500">
+            Şunlardan birini mi demek istedin?
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {suggestions.map((s, i) => (
+              <Link
+                key={`${s.kind}-${s.identifier}-${i}`}
+                href={`/sorgu?q=${encodeURIComponent(s.identifier)}`}
+                className="inline-flex items-center gap-2 rounded-full bg-white border border-ink-300 px-3 py-1.5 text-sm hover:border-brand-500 hover:bg-brand-50 transition-colors group"
+              >
+                <span
+                  className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${KIND_TONE[s.kind]}`}
+                >
+                  {KIND_LABEL[s.kind]}
+                </span>
+                <span className="font-medium text-ink-900">{s.name}</span>
+                {s.hint && (
+                  <span className="text-xs text-ink-400">· {s.hint}</span>
+                )}
+                <ArrowRight className="h-3 w-3 text-ink-400 group-hover:text-brand-600 group-hover:translate-x-0.5 transition-all" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

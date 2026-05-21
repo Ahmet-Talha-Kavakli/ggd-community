@@ -10,6 +10,7 @@ import {
   Crown,
   SignOut,
   SignIn,
+  ChartBar,
 } from "@phosphor-icons/react/dist/ssr";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +20,11 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { formatDateTime } from "@/lib/utils";
 import { gravatarUrl } from "@/lib/gravatar";
-import { joinEventAction, leaveEventAction } from "@/lib/actions/events";
+import {
+  joinEventAction,
+  leaveEventAction,
+  castPollVoteAction,
+} from "@/lib/actions/events";
 import type {
   Event,
   EventStatus,
@@ -44,6 +49,7 @@ const TYPE_META: Record<EventType, { label: string; Icon: typeof Trophy }> = {
   raffle: { label: "Çekiliş", Icon: Gift },
   tournament: { label: "Turnuva", Icon: Trophy },
   community: { label: "Topluluk", Icon: Users },
+  poll: { label: "Anket", Icon: ChartBar },
   other: { label: "Etkinlik", Icon: Sparkle },
 };
 
@@ -67,7 +73,13 @@ export default async function EtkinlikDetayPage({
   if (!Number.isFinite(eventId)) notFound();
 
   const supabase = await createClient();
-  const [eventRes, participantsRes, current] = await Promise.all([
+  const [
+    eventRes,
+    participantsRes,
+    pollOptionsRes,
+    pollVotesRes,
+    current,
+  ] = await Promise.all([
     supabase
       .from("events")
       .select(
@@ -82,11 +94,38 @@ export default async function EtkinlikDetayPage({
       )
       .eq("event_id", eventId)
       .order("joined_at", { ascending: true }),
+    supabase
+      .from("poll_options")
+      .select("id, label, position")
+      .eq("event_id", eventId)
+      .order("position", { ascending: true }),
+    supabase
+      .from("poll_votes")
+      .select("option_id, user_id")
+      .eq("event_id", eventId),
     getCurrentUser(),
   ]);
 
   const event = eventRes.data as unknown as EventDetail | null;
   if (!event) notFound();
+
+  const pollOptions = (pollOptionsRes.data ?? []) as {
+    id: number;
+    label: string;
+    position: number;
+  }[];
+  const pollVotes = (pollVotesRes.data ?? []) as {
+    option_id: number;
+    user_id: string;
+  }[];
+  const votesByOption = new Map<number, number>();
+  for (const v of pollVotes) {
+    votesByOption.set(v.option_id, (votesByOption.get(v.option_id) ?? 0) + 1);
+  }
+  const userVote = current
+    ? pollVotes.find((v) => v.user_id === current.user.id)?.option_id ?? null
+    : null;
+  const totalVotes = pollVotes.length;
 
   const participants = (participantsRes.data ?? []) as unknown as ParticipantRow[];
   const status = STATUS_META[event.status];
@@ -135,6 +174,17 @@ export default async function EtkinlikDetayPage({
       <section className="container-page py-14">
         <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           <div className="flex flex-col gap-5">
+            {event.type === "poll" && pollOptions.length > 0 && (
+              <PollSection
+                eventId={event.id}
+                eventStatus={event.status}
+                options={pollOptions}
+                votesByOption={votesByOption}
+                totalVotes={totalVotes}
+                userVote={userVote}
+                canVote={!!current && current.isApproved}
+              />
+            )}
             {event.prize && (
               <Card className="border-brand-200 bg-brand-50/60">
                 <CardContent className="p-6">
@@ -331,5 +381,142 @@ export default async function EtkinlikDetayPage({
         </div>
       </section>
     </>
+  );
+}
+
+function PollSection({
+  eventId,
+  eventStatus,
+  options,
+  votesByOption,
+  totalVotes,
+  userVote,
+  canVote,
+}: {
+  eventId: number;
+  eventStatus: EventStatus;
+  options: { id: number; label: string; position: number }[];
+  votesByOption: Map<number, number>;
+  totalVotes: number;
+  userVote: number | null;
+  canVote: boolean;
+}) {
+  const isClosed =
+    eventStatus === "completed" || eventStatus === "cancelled";
+  const isLive = eventStatus === "published" || eventStatus === "ongoing";
+  const showVoteUI = isLive && canVote;
+
+  return (
+    <Card className="border-brand-200">
+      <CardContent className="p-6 md:p-8">
+        <div className="flex items-start gap-3 mb-5">
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-100 text-brand-700">
+            <ChartBar size={20} weight="duotone" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-ink-900">Topluluk anketi</h2>
+            <p className="text-xs text-ink-500 mt-0.5">
+              {totalVotes} oy{userVote ? " · oyunu verdin" : ""}
+              {isClosed && " · anket kapalı"}
+            </p>
+          </div>
+        </div>
+
+        <ul className="flex flex-col gap-3">
+          {options.map((opt) => {
+            const count = votesByOption.get(opt.id) ?? 0;
+            const pct =
+              totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+            const isSelected = userVote === opt.id;
+            const isWinning =
+              totalVotes > 0 &&
+              count > 0 &&
+              count === Math.max(...Array.from(votesByOption.values()));
+
+            return (
+              <li key={opt.id}>
+                {showVoteUI ? (
+                  <form action={castPollVoteAction}>
+                    <input type="hidden" name="event_id" value={eventId} />
+                    <input type="hidden" name="option_id" value={opt.id} />
+                    <button
+                      type="submit"
+                      className={`relative w-full text-left rounded-xl border-2 px-4 py-3 transition-all overflow-hidden ${
+                        isSelected
+                          ? "border-brand-500 bg-brand-50 shadow-sm"
+                          : "border-ink-200 bg-white hover:border-brand-300 hover:bg-brand-50/40"
+                      }`}
+                    >
+                      <div
+                        aria-hidden
+                        className="absolute inset-y-0 left-0 bg-brand-100/60 transition-all"
+                        style={{ width: `${pct}%` }}
+                      />
+                      <div className="relative flex items-center gap-3">
+                        <div
+                          className={`grid h-5 w-5 place-items-center rounded-full border-2 shrink-0 ${
+                            isSelected
+                              ? "border-brand-600 bg-brand-600"
+                              : "border-ink-300"
+                          }`}
+                        >
+                          {isSelected && (
+                            <div className="h-2 w-2 rounded-full bg-white" />
+                          )}
+                        </div>
+                        <span className="flex-1 text-sm font-medium text-ink-900">
+                          {opt.label}
+                        </span>
+                        <span className="text-xs font-mono text-ink-700 tabular-nums">
+                          {count} · {pct}%
+                        </span>
+                      </div>
+                    </button>
+                  </form>
+                ) : (
+                  <div
+                    className={`relative rounded-xl border-2 px-4 py-3 overflow-hidden ${
+                      isWinning && isClosed
+                        ? "border-brand-500 bg-brand-50"
+                        : "border-ink-200 bg-white"
+                    }`}
+                  >
+                    <div
+                      aria-hidden
+                      className="absolute inset-y-0 left-0 bg-brand-100/60"
+                      style={{ width: `${pct}%` }}
+                    />
+                    <div className="relative flex items-center gap-3">
+                      {isSelected && (
+                        <div className="grid h-5 w-5 place-items-center rounded-full border-2 border-brand-600 bg-brand-600 shrink-0">
+                          <div className="h-2 w-2 rounded-full bg-white" />
+                        </div>
+                      )}
+                      <span className="flex-1 text-sm font-medium text-ink-900">
+                        {opt.label}
+                      </span>
+                      <span className="text-xs font-mono text-ink-700 tabular-nums">
+                        {count} · {pct}%
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+
+        {!canVote && isLive && (
+          <p className="mt-4 text-xs text-ink-500">
+            Oy vermek için giriş yap ve hesabını doğrulat.
+          </p>
+        )}
+        {userVote && showVoteUI && (
+          <p className="mt-4 text-xs text-ink-500">
+            İstediğin zaman başka bir seçeneğe tıklayarak oyunu değiştirebilirsin.
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 }

@@ -41,7 +41,12 @@ export type ReportCategory =
   | "stream_sniping"
   | "other";
 
-export type EventType = "raffle" | "tournament" | "community" | "other";
+export type EventType =
+  | "raffle"
+  | "tournament"
+  | "community"
+  | "poll"
+  | "other";
 export type EventStatus =
   | "draft"
   | "published"
@@ -203,6 +208,21 @@ export interface Event {
   updated_at: string;
 }
 
+export interface PollOption {
+  id: number;
+  event_id: number;
+  label: string;
+  position: number;
+  created_at: string;
+}
+
+export interface PollVote {
+  event_id: number;
+  option_id: number;
+  user_id: string;
+  created_at: string;
+}
+
 export interface EventParticipant {
   event_id: number;
   user_id: string;
@@ -309,6 +329,8 @@ export type Database = {
       red_zone_evidence: TableShape<RedZoneEvidence>;
       events: TableShape<Event>;
       event_participants: TableShape<EventParticipant>;
+      poll_options: TableShape<PollOption>;
+      poll_votes: TableShape<PollVote>;
     };
     Views: Record<string, never>;
     Functions: {

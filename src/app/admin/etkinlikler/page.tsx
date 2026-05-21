@@ -6,6 +6,7 @@ import {
   Users,
   Sparkle,
   Gift,
+  ChartBar,
 } from "@phosphor-icons/react/dist/ssr";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,6 +33,7 @@ const TYPE_META: Record<EventType, { label: string; Icon: typeof Trophy }> = {
   raffle: { label: "Çekiliş", Icon: Gift },
   tournament: { label: "Turnuva", Icon: Trophy },
   community: { label: "Topluluk", Icon: Users },
+  poll: { label: "Anket", Icon: ChartBar },
   other: { label: "Etkinlik", Icon: Sparkle },
 };
 
