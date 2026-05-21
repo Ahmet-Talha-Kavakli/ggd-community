@@ -4,23 +4,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ROLE_META } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
-import { gravatarUrl } from "@/lib/gravatar";
-import { formatDate } from "@/lib/utils";
+import { avatarUrl } from "@/lib/avatars";
 import type { Profile } from "@/lib/supabase/types";
 
 export const metadata = { title: "Lobi Yönetimi" };
+export const dynamic = "force-dynamic"; // avatar guncel kalsin (cache yok)
 
 export default async function YonetimPage() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, nickname, role, bio, joined_at, ggd_level")
+    .select("id, email, nickname, role, bio, ggd_level, avatar_path")
     .in("role", ["owner", "co_owner", "admin", "moderator", "helper"])
     .order("joined_at", { ascending: true });
 
   const team = (data ?? []) as Pick<
     Profile,
-    "id" | "email" | "nickname" | "role" | "bio" | "joined_at" | "ggd_level"
+    "id" | "email" | "nickname" | "role" | "bio" | "ggd_level" | "avatar_path"
   >[];
 
   return (
@@ -97,11 +97,15 @@ export default async function YonetimPage() {
                 <CardContent className="p-7">
                   <div className="flex items-center gap-4">
                     <Image
-                      src={gravatarUrl(m.email, 80)}
+                      src={avatarUrl({
+                        avatarPath: m.avatar_path,
+                        email: m.email,
+                        size: 112,
+                      })}
                       alt={m.nickname}
                       width={56}
                       height={56}
-                      className="h-14 w-14 rounded-2xl border border-ink-200"
+                      className="h-14 w-14 rounded-2xl border border-ink-200 object-cover"
                       unoptimized
                     />
                     <div>
@@ -126,9 +130,6 @@ export default async function YonetimPage() {
                       {m.bio}
                     </p>
                   )}
-                  <p className="mt-4 text-xs text-ink-400">
-                    {formatDate(m.joined_at)} tarihinde katıldı
-                  </p>
                 </CardContent>
               </Card>
             );

@@ -84,6 +84,7 @@ export interface Ban {
   ggd_user_id: string | null;
   target_nickname: string;
   target_main_name: string | null;
+  ggd_level: number | null;
   reason: string;
   reason_tags: string[];
   duration: BanDuration;
@@ -98,6 +99,7 @@ export interface Warning {
   ggd_user_id: string | null;
   target_nickname: string;
   target_main_name: string | null;
+  ggd_level: number | null;
   reason: string;
   reason_tags: string[];
   severity: WarningSeverity;
@@ -267,6 +269,7 @@ export interface RedZoneEntry {
   ggd_user_id: string | null;
   nickname: string;
   main_name: string | null;
+  ggd_level: number | null;
   reason: string;
   description: string | null;
   source: string | null;

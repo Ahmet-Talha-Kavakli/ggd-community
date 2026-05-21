@@ -103,18 +103,41 @@ export async function updateRoomCodeAction(
 // =============================================================================
 // Ban
 // =============================================================================
+
+// GGD User ID validator — sadece rakam (4-12 hane) veya bos/null. "Bilinmiyor"
+// gibi text degerler reject edilir; aksi takdirde profile lookup'i yanlis
+// kisiyi bulup notification yollayabilir.
+const ggdUserIdSchema = z
+  .string()
+  .max(32)
+  .optional()
+  .transform((v) => {
+    const trimmed = v?.trim();
+    if (!trimmed) return null;
+    // Sadece rakam — "Bilinmiyor" gibi text reddedilir
+    if (!/^\d{4,12}$/.test(trimmed)) return null;
+    return trimmed;
+  });
+
+const ggdLevelSchema = z
+  .union([z.string(), z.number()])
+  .optional()
+  .transform((v) => {
+    if (v === undefined || v === null || v === "") return null;
+    const n = typeof v === "number" ? v : parseInt(String(v).trim(), 10);
+    if (Number.isNaN(n) || n < 1 || n > 9999) return null;
+    return n;
+  });
+
 const BanSchema = z.object({
-  ggd_user_id: z
-    .string()
-    .max(32)
-    .optional()
-    .transform((v) => v?.trim() || null),
+  ggd_user_id: ggdUserIdSchema,
   target_nickname: z.string().min(1, "Oyun içi nick gerekli").max(48),
   target_main_name: z
     .string()
     .max(48)
     .optional()
     .transform((v) => v?.trim() || null),
+  ggd_level: ggdLevelSchema,
   reason: z.string().max(500).optional().transform((v) => v?.trim() || ""),
   reason_tags: z.array(z.string().min(1).max(64)).max(20).default([]),
   duration: z.enum(["permanent", "7d", "30d", "90d"]),
@@ -129,6 +152,7 @@ export async function createBanAction(
     ggd_user_id: formData.get("ggd_user_id"),
     target_nickname: formData.get("target_nickname"),
     target_main_name: formData.get("target_main_name"),
+    ggd_level: formData.get("ggd_level"),
     reason: formData.get("reason"),
     reason_tags: formData.getAll("reason_tags").map((v) => String(v)),
     duration: formData.get("duration"),
@@ -166,12 +190,39 @@ export async function createBanAction(
         ).toISOString();
 
   const supabase = await createClient();
+
+  // Duplikat ban kontrol — ayni GGD ID veya (nick + main_name) ile aktif ban
+  // varsa engelle.
+  {
+    let dupQuery = supabase
+      .from("bans")
+      .select("id")
+      .eq("is_active", true)
+      .limit(1);
+    if (parsed.data.ggd_user_id) {
+      dupQuery = dupQuery.eq("ggd_user_id", parsed.data.ggd_user_id);
+    } else {
+      dupQuery = dupQuery
+        .eq("target_nickname", parsed.data.target_nickname)
+        .eq("target_main_name", parsed.data.target_main_name ?? "");
+    }
+    const { data: existing } = await dupQuery.maybeSingle();
+    if (existing) {
+      return {
+        ok: false,
+        error:
+          "Bu oyuncunun zaten aktif bir banı var. Önce mevcut banı kaldır veya farklı bir kayıt aç.",
+      };
+    }
+  }
+
   const { data, error } = await supabase
     .from("bans")
     .insert({
       ggd_user_id: parsed.data.ggd_user_id,
       target_nickname: parsed.data.target_nickname,
       target_main_name: parsed.data.target_main_name,
+      ggd_level: parsed.data.ggd_level,
       reason: parsed.data.reason,
       reason_tags: parsed.data.reason_tags,
       duration: parsed.data.duration,
@@ -200,8 +251,10 @@ export async function createBanAction(
     metadata: { ggd_user_id: parsed.data.ggd_user_id, duration: parsed.data.duration },
   });
 
-  // Banlanan oyuncu sitemize kayıtlıysa email + in-app bildirim
-  if (parsed.data.ggd_user_id) {
+  // Banlanan oyuncu sitemize kayitliysa email + in-app bildirim
+  // GUVENLIK: ggd_user_id sadece rakam (schema validate ediyor). Admin
+  // kendine bildirim gondermesin diye id eslestir.
+  if (parsed.data.ggd_user_id && /^\d{4,12}$/.test(parsed.data.ggd_user_id)) {
     const { data: targetProfile } = await supabase
       .from("profiles")
       .select("id, email, nickname")
@@ -212,7 +265,7 @@ export async function createBanAction(
       email: string;
       nickname: string;
     } | null;
-    if (tp) {
+    if (tp && tp.id !== current.user.id) {
       const durationText =
         parsed.data.duration === "permanent"
           ? "kalıcı"
@@ -268,17 +321,14 @@ export async function deactivateBanAction(formData: FormData) {
 // Warning
 // =============================================================================
 const WarningSchema = z.object({
-  ggd_user_id: z
-    .string()
-    .max(32)
-    .optional()
-    .transform((v) => v?.trim() || null),
+  ggd_user_id: ggdUserIdSchema,
   target_nickname: z.string().min(1).max(48),
   target_main_name: z
     .string()
     .max(48)
     .optional()
     .transform((v) => v?.trim() || null),
+  ggd_level: ggdLevelSchema,
   reason: z.string().max(500).optional().transform((v) => v?.trim() || ""),
   reason_tags: z.array(z.string().min(1).max(64)).max(20).default([]),
   severity: z.enum(["low", "medium", "high"]),
@@ -293,6 +343,7 @@ export async function createWarningAction(
     ggd_user_id: formData.get("ggd_user_id"),
     target_nickname: formData.get("target_nickname"),
     target_main_name: formData.get("target_main_name"),
+    ggd_level: formData.get("ggd_level"),
     reason: formData.get("reason"),
     reason_tags: formData.getAll("reason_tags").map((v) => String(v)),
     severity: formData.get("severity"),
@@ -319,6 +370,7 @@ export async function createWarningAction(
       ggd_user_id: parsed.data.ggd_user_id,
       target_nickname: parsed.data.target_nickname,
       target_main_name: parsed.data.target_main_name,
+      ggd_level: parsed.data.ggd_level,
       reason: parsed.data.reason,
       reason_tags: parsed.data.reason_tags,
       severity: parsed.data.severity,
@@ -337,8 +389,65 @@ export async function createWarningAction(
     }
   }
 
-  // Uyarilan oyuncu sitemize kayitliysa email + in-app bildirim
+  // 3 aktif uyari = otomatik 30 gun ban (lobi kurallari geregi)
+  let autoBanTriggered = false;
   if (parsed.data.ggd_user_id) {
+    const { count: activeWarnCount } = await supabase
+      .from("warnings")
+      .select("id", { count: "exact", head: true })
+      .eq("ggd_user_id", parsed.data.ggd_user_id)
+      .eq("is_active", true);
+
+    if ((activeWarnCount ?? 0) >= 3) {
+      // Aktif ban yoksa otomatik 30g ban ekle
+      const { data: existingBan } = await supabase
+        .from("bans")
+        .select("id")
+        .eq("ggd_user_id", parsed.data.ggd_user_id)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (!existingBan) {
+        const autoExpiresAt = new Date(
+          Date.now() + 30 * 24 * 60 * 60 * 1000,
+        ).toISOString();
+        const { data: autoBanData } = await supabase
+          .from("bans")
+          .insert({
+            ggd_user_id: parsed.data.ggd_user_id,
+            target_nickname: parsed.data.target_nickname,
+            target_main_name: parsed.data.target_main_name,
+            ggd_level: parsed.data.ggd_level,
+            reason:
+              "Otomatik ban — 3 aktif uyarı birikti (lobi kuralları gereği)",
+            reason_tags: ["uyari-birikimi"],
+            duration: "30d",
+            expires_at: autoExpiresAt,
+            banned_by: current.user.id,
+            is_active: true,
+          })
+          .select("id")
+          .single();
+
+        await logAuditEvent({
+          actorId: current.user.id,
+          action: "ban.auto_create",
+          targetType: "ban",
+          targetId: (autoBanData as { id: number } | null)?.id,
+          metadata: {
+            reason: "3 active warnings reached",
+            ggd_user_id: parsed.data.ggd_user_id,
+          },
+        });
+
+        autoBanTriggered = true;
+      }
+    }
+  }
+
+  // Uyarilan oyuncu sitemize kayitliysa email + in-app bildirim
+  // GUVENLIK: schema rakam validate ediyor + admin'in kendi id'siyle eslesmemeli
+  if (parsed.data.ggd_user_id && /^\d{4,12}$/.test(parsed.data.ggd_user_id)) {
     const { data: targetProfile } = await supabase
       .from("profiles")
       .select("id, email, nickname")
@@ -349,7 +458,7 @@ export async function createWarningAction(
       email: string;
       nickname: string;
     } | null;
-    if (tp) {
+    if (tp && tp.id !== current.user.id) {
       if (tp.email) {
         await sendWarningNotificationEmail({
           to: tp.email,
@@ -361,7 +470,9 @@ export async function createWarningAction(
       await createNotification({
         profileId: tp.id,
         type: "warning_received",
-        title: "Bir uyarı aldın",
+        title: autoBanTriggered
+          ? "3 uyarı doldu — 30 gün banlandın"
+          : "Bir uyarı aldın",
         body: parsed.data.reason,
         link: "/uyarilar",
         payload: {
@@ -377,11 +488,19 @@ export async function createWarningAction(
     action: "warning.create",
     targetType: "warning",
     targetId: data?.id,
-    metadata: { ggd_user_id: parsed.data.ggd_user_id, severity: parsed.data.severity },
+    metadata: {
+      ggd_user_id: parsed.data.ggd_user_id,
+      severity: parsed.data.severity,
+      auto_ban_triggered: autoBanTriggered,
+    },
   });
 
   revalidatePath("/uyarilar");
   revalidatePath("/admin/uyarilar");
+  if (autoBanTriggered) {
+    revalidatePath("/kara-liste");
+    revalidatePath("/admin/kara-liste");
+  }
   redirect("/admin/uyarilar");
 }
 
@@ -779,11 +898,8 @@ function readEvidenceFiles(formData: FormData): File[] {
 // Red Zone — Kirmizi Alan CRUD
 // =============================================================================
 const RedZoneSchema = z.object({
-  ggd_user_id: z
-    .string()
-    .max(32)
-    .optional()
-    .transform((v) => v?.trim() || null),
+  ggd_user_id: ggdUserIdSchema,
+  ggd_level: ggdLevelSchema,
   nickname: z.string().min(1, "Nickname zorunlu").max(48),
   main_name: z
     .string()
@@ -815,6 +931,7 @@ export async function createRedZoneAction(
   const current = await requireAdmin();
   const parsed = RedZoneSchema.safeParse({
     ggd_user_id: formData.get("ggd_user_id"),
+    ggd_level: formData.get("ggd_level"),
     nickname: formData.get("nickname"),
     main_name: formData.get("main_name"),
     reason: formData.get("reason"),
@@ -842,6 +959,7 @@ export async function createRedZoneAction(
     .from("red_zone")
     .insert({
       ggd_user_id: parsed.data.ggd_user_id,
+      ggd_level: parsed.data.ggd_level,
       nickname: parsed.data.nickname,
       main_name: parsed.data.main_name,
       reason: parsed.data.reason,

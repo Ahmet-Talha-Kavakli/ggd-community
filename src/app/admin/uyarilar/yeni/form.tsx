@@ -49,21 +49,40 @@ export function WarningForm({
           />
         </div>
       </div>
-      <div>
-        <Label htmlFor="ggd_user_id">
-          GGD Friend Code / User ID{" "}
-          <span className="text-ink-400 font-normal">(opsiyonel)</span>
-        </Label>
-        <Input
-          id="ggd_user_id"
-          name="ggd_user_id"
-          placeholder="Elinde varsa gir — örn. 123456789"
-          defaultValue={defaultGgd}
-          className="font-mono"
-        />
-        <p className="mt-1.5 text-xs text-ink-500">
-          Elinde yoksa boş bırak — nick yeterli.
-        </p>
+      <div className="grid gap-5 md:grid-cols-[2fr_1fr]">
+        <div>
+          <Label htmlFor="ggd_user_id">
+            GGD Friend Code / User ID{" "}
+            <span className="text-ink-400 font-normal">(opsiyonel)</span>
+          </Label>
+          <Input
+            id="ggd_user_id"
+            name="ggd_user_id"
+            placeholder="Sadece rakam — örn. 123456789"
+            defaultValue={defaultGgd}
+            inputMode="numeric"
+            pattern="\d*"
+            className="font-mono"
+          />
+          <p className="mt-1.5 text-xs text-ink-500">
+            Bilmiyorsan boş bırak — &quot;Bilinmiyor&quot; vb. text yazma.
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="ggd_level">
+            GGD Level{" "}
+            <span className="text-ink-400 font-normal">(opsiyonel)</span>
+          </Label>
+          <Input
+            id="ggd_level"
+            name="ggd_level"
+            placeholder="örn. 87"
+            type="number"
+            min={1}
+            max={9999}
+            className="font-mono"
+          />
+        </div>
       </div>
 
       <div>

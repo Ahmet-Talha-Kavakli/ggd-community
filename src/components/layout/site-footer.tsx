@@ -9,12 +9,15 @@ import {
 import { Logo } from "@/components/brand/logo";
 import { SITE } from "@/config/site";
 
-const SECTIONS = [
+type FooterLink = { href: string; label: string; tone?: "danger" };
+
+const SECTIONS: { title: string; links: FooterLink[] }[] = [
   {
     title: "Topluluk",
     links: [
       { href: "/topluluk", label: "Sohbet" },
       { href: "/duyurular", label: "Duyurular" },
+      { href: "/etkinlikler", label: "Etkinlikler" },
       { href: "/yonetim", label: "Yönetim" },
       { href: "/kurallar", label: "Kurallar" },
       { href: "/istatistikler", label: "İstatistikler" },
@@ -26,6 +29,7 @@ const SECTIONS = [
       { href: "/sorgu", label: "Oyuncu Sorgu" },
       { href: "/kara-liste", label: "Kara Liste" },
       { href: "/uyarilar", label: "Uyarılar" },
+      { href: "/kirmizi-alan", label: "Kırmızı Alan", tone: "danger" },
       { href: "/sikayet", label: "Şikayet Et" },
     ],
   },
@@ -40,11 +44,36 @@ const SECTIONS = [
 ];
 
 const SOCIAL = [
-  { name: "Discord", href: "#", color: "#5865F2", icon: DiscordLogo },
-  { name: "YouTube", href: "#", color: "#FF0000", icon: YoutubeLogo },
-  { name: "X", href: "#", color: "#000000", icon: XLogo },
-  { name: "Instagram", href: "#", color: "#E4405F", icon: InstagramLogo },
-  { name: "TikTok", href: "#", color: "#000000", icon: TiktokLogo },
+  {
+    name: "Discord",
+    href: SITE.socials.discord,
+    color: "#5865F2",
+    icon: DiscordLogo,
+  },
+  {
+    name: "YouTube",
+    href: SITE.socials.youtube,
+    color: "#FF0000",
+    icon: YoutubeLogo,
+  },
+  {
+    name: "X",
+    href: SITE.socials.x,
+    color: "#000000",
+    icon: XLogo,
+  },
+  {
+    name: "Instagram",
+    href: SITE.socials.instagram,
+    color: "#E4405F",
+    icon: InstagramLogo,
+  },
+  {
+    name: "TikTok",
+    href: SITE.socials.tiktok,
+    color: "#000000",
+    icon: TiktokLogo,
+  },
 ];
 
 export function SiteFooter() {
@@ -63,6 +92,8 @@ export function SiteFooter() {
             <Link
               key={s.name}
               href={s.href}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-ink-200 bg-white/70 backdrop-blur hover:bg-white hover:border-ink-300 hover:-translate-y-0.5 transition-all shadow-sm group"
               aria-label={s.name}
             >
@@ -102,17 +133,30 @@ export function SiteFooter() {
                 {section.title}
               </h4>
               <ul className="flex flex-col gap-2.5">
-                {section.links.map((l) => (
-                  <li key={l.href}>
-                    <Link
-                      href={l.href}
-                      className="text-sm text-ink-600 hover:text-brand-700 transition-colors inline-flex items-center gap-1.5 group"
-                    >
-                      <span className="h-px w-0 bg-brand-600 transition-all duration-200 group-hover:w-3" />
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
+                {section.links.map((l) => {
+                  const isDanger = l.tone === "danger";
+                  return (
+                    <li key={l.href}>
+                      <Link
+                        href={l.href}
+                        className={
+                          isDanger
+                            ? "text-sm text-danger-700 hover:text-danger-800 transition-colors inline-flex items-center gap-1.5 group font-medium"
+                            : "text-sm text-ink-600 hover:text-brand-700 transition-colors inline-flex items-center gap-1.5 group"
+                        }
+                      >
+                        <span
+                          className={
+                            isDanger
+                              ? "h-px w-0 bg-danger-600 transition-all duration-200 group-hover:w-3"
+                              : "h-px w-0 bg-brand-600 transition-all duration-200 group-hover:w-3"
+                          }
+                        />
+                        {l.label}
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}

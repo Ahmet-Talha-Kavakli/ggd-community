@@ -489,6 +489,68 @@ async function DetailView({ ggdUserId }: { ggdUserId: string }) {
       evidenceByReport.set(e.report_id, list);
     }
   }
+
+  // Ban / warning evidence — admin-evidence bucket (public read)
+  type AdminEvidenceItem = {
+    id: number;
+    storage_path: string;
+    media_type: "image" | "video";
+    url: string;
+  };
+
+  const buildPublicUrl = (path: string) => {
+    const { data } = supabase.storage.from("admin-evidence").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const banIds = bans.map((b) => b.id);
+  let evidenceByBan = new Map<number, AdminEvidenceItem[]>();
+  if (banIds.length > 0) {
+    const { data: banEv } = await supabase
+      .from("ban_evidence")
+      .select("id, ban_id, storage_path, media_type")
+      .in("ban_id", banIds);
+    for (const row of ((banEv ?? []) as {
+      id: number;
+      ban_id: number;
+      storage_path: string;
+      media_type: "image" | "video";
+    }[])) {
+      const list = evidenceByBan.get(row.ban_id) ?? [];
+      list.push({
+        id: row.id,
+        storage_path: row.storage_path,
+        media_type: row.media_type,
+        url: buildPublicUrl(row.storage_path),
+      });
+      evidenceByBan.set(row.ban_id, list);
+    }
+  }
+
+  const warnIds = warnings.map((w) => w.id);
+  let evidenceByWarning = new Map<number, AdminEvidenceItem[]>();
+  if (warnIds.length > 0) {
+    const { data: warnEv } = await supabase
+      .from("warning_evidence")
+      .select("id, warning_id, storage_path, media_type")
+      .in("warning_id", warnIds);
+    for (const row of ((warnEv ?? []) as {
+      id: number;
+      warning_id: number;
+      storage_path: string;
+      media_type: "image" | "video";
+    }[])) {
+      const list = evidenceByWarning.get(row.warning_id) ?? [];
+      list.push({
+        id: row.id,
+        storage_path: row.storage_path,
+        media_type: row.media_type,
+        url: buildPublicUrl(row.storage_path),
+      });
+      evidenceByWarning.set(row.warning_id, list);
+    }
+  }
+
   void escaped; // (multi-query yaklaşımı kullanıldı, escape gerekmedi)
   const activeBan = bans.find((b) => b.is_active);
   const activeWarnings = warnings.filter((w) => w.is_active);
@@ -788,6 +850,9 @@ async function DetailView({ ggdUserId }: { ggdUserId: string }) {
                     {b.reason && (
                       <p className="text-sm text-ink-700">{b.reason}</p>
                     )}
+                    {(evidenceByBan.get(b.id)?.length ?? 0) > 0 && (
+                      <EvidenceGrid items={evidenceByBan.get(b.id) ?? []} />
+                    )}
                   </li>
                 );
               })}
@@ -849,6 +914,9 @@ async function DetailView({ ggdUserId }: { ggdUserId: string }) {
                     )}
                     {w.reason && (
                       <p className="text-sm text-ink-700">{w.reason}</p>
+                    )}
+                    {(evidenceByWarning.get(w.id)?.length ?? 0) > 0 && (
+                      <EvidenceGrid items={evidenceByWarning.get(w.id) ?? []} />
                     )}
                   </li>
                 );
@@ -1087,6 +1155,51 @@ function LegendCards() {
         title="Banlı"
         text="Kara listeye alınmış oyuncu."
       />
+    </div>
+  );
+}
+
+function EvidenceGrid({
+  items,
+}: {
+  items: { id: number; url: string; media_type: "image" | "video" }[];
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div className="mt-2 flex flex-wrap gap-2">
+      {items.map((e) => (
+        <a
+          key={e.id}
+          href={e.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative block h-20 w-20 rounded-lg overflow-hidden border border-ink-200 bg-ink-50 hover:border-brand-400 transition-colors"
+          title={e.media_type === "video" ? "Video kanıtı" : "Foto kanıtı"}
+        >
+          {e.media_type === "image" ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={e.url}
+              alt="Kanıt"
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <video
+              src={e.url}
+              className="h-full w-full object-cover"
+              muted
+              playsInline
+              preload="metadata"
+            />
+          )}
+          {e.media_type === "video" && (
+            <span className="absolute bottom-1 right-1 text-[10px] font-bold uppercase bg-black/60 text-white px-1.5 py-0.5 rounded">
+              VID
+            </span>
+          )}
+        </a>
+      ))}
     </div>
   );
 }
