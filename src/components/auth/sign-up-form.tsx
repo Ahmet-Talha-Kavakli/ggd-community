@@ -7,6 +7,7 @@ import { useSignUp } from "@clerk/react/legacy";
 import { ArrowRight, AlertCircle, Info, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { clerkErrorToTr } from "@/lib/clerk-errors";
 
 export function SignUpForm() {
   const { signUp, isLoaded, setActive } = useSignUp();
@@ -65,8 +66,7 @@ export function SignUpForm() {
         setError("Kayıt tamamlanamadı: " + created.status);
       }
     } catch (err: unknown) {
-      const e = err as { errors?: { message: string }[]; message?: string };
-      setError(e.errors?.[0]?.message ?? e.message ?? "Kayıt başarısız.");
+      setError(clerkErrorToTr(err));
     } finally {
       setPending(false);
     }
@@ -89,8 +89,7 @@ export function SignUpForm() {
         setError("Kod hatalı veya eksik.");
       }
     } catch (err: unknown) {
-      const e = err as { errors?: { message: string }[]; message?: string };
-      setError(e.errors?.[0]?.message ?? e.message ?? "Doğrulama başarısız.");
+      setError(clerkErrorToTr(err));
     } finally {
       setPending(false);
     }
@@ -105,8 +104,7 @@ export function SignUpForm() {
         redirectUrlComplete: "/profil",
       });
     } catch (err: unknown) {
-      const e = err as { errors?: { message: string }[] };
-      setError(e.errors?.[0]?.message ?? "Google ile kayıt başarısız.");
+      setError(clerkErrorToTr(err));
     }
   }
 

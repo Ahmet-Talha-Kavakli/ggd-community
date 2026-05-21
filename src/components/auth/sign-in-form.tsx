@@ -7,6 +7,7 @@ import { useSignIn, useSignUp } from "@clerk/react/legacy";
 import { ArrowRight, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { clerkErrorToTr } from "@/lib/clerk-errors";
 
 export function SignInForm() {
   const { signIn, isLoaded, setActive } = useSignIn();
@@ -38,19 +39,14 @@ export function SignInForm() {
         setError("Giriş tamamlanamadı. Lütfen tekrar dene.");
       }
     } catch (err: unknown) {
-      const e = err as {
-        errors?: { message: string; code?: string }[];
-        message?: string;
-      };
+      const e = err as { errors?: { code?: string }[] };
       // Zaten oturum açıksa kullanıcıyı anasayfaya yönlendir
       if (e.errors?.[0]?.code === "session_exists") {
         router.push(nextUrl);
         router.refresh();
         return;
       }
-      setError(
-        e.errors?.[0]?.message ?? e.message ?? "Giriş başarısız.",
-      );
+      setError(clerkErrorToTr(err));
     } finally {
       setPending(false);
     }
@@ -67,8 +63,7 @@ export function SignInForm() {
         redirectUrlComplete: nextUrl,
       });
     } catch (err: unknown) {
-      const e = err as { errors?: { message: string }[] };
-      setError(e.errors?.[0]?.message ?? "Google ile giriş başarısız.");
+      setError(clerkErrorToTr(err));
     }
   }
 
