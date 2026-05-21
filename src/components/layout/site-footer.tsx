@@ -34,19 +34,30 @@ const SECTIONS = [
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-ink-200/60 bg-ink-50">
-      <div className="container-page py-14">
-        <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+    <footer className="relative mt-24 border-t border-brand-200/50 bg-linear-to-b from-white via-brand-50/40 to-brand-100/40">
+      {/* Subtle dekoratif ust serit */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-brand-500/60 to-transparent"
+      />
+
+      <div className="container-page py-16">
+        <div className="grid gap-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
             <Logo />
-            <p className="mt-4 text-sm text-ink-500 max-w-sm leading-relaxed">
+            <p className="mt-4 text-sm text-ink-600 max-w-sm leading-relaxed">
               {SITE.description}
             </p>
+            <span className="mt-5 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/60 backdrop-blur px-3 py-1 text-xs font-medium text-brand-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-500 animate-pulse" />
+              Topluluk canlı
+            </span>
           </div>
 
           {SECTIONS.map((section) => (
             <div key={section.title}>
-              <h4 className="text-sm font-semibold text-ink-900 mb-4">
+              <h4 className="text-sm font-semibold text-brand-800 mb-4 flex items-center gap-2">
+                <span className="h-1 w-1 rounded-full bg-brand-500" />
                 {section.title}
               </h4>
               <ul className="flex flex-col gap-2.5">
@@ -54,8 +65,9 @@ export function SiteFooter() {
                   <li key={l.href}>
                     <Link
                       href={l.href}
-                      className="text-sm text-ink-500 hover:text-ink-900 transition-colors"
+                      className="text-sm text-ink-600 hover:text-brand-700 transition-colors inline-flex items-center gap-1.5 group"
                     >
+                      <span className="h-px w-0 bg-brand-600 transition-all duration-200 group-hover:w-3" />
                       {l.label}
                     </Link>
                   </li>
@@ -65,11 +77,13 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <div className="mt-12 pt-8 border-t border-ink-200/60 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
-          <p className="text-xs text-ink-500">
-            © {new Date().getFullYear()} {SITE.name}. Tüm hakları saklıdır.
+        <div className="mt-14 pt-8 border-t border-brand-200/40 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+          <p className="text-xs text-ink-600">
+            © {new Date().getFullYear()}{" "}
+            <span className="font-medium text-ink-800">{SITE.name}</span>. Tüm
+            hakları saklıdır.
           </p>
-          <p className="text-xs text-ink-400">
+          <p className="text-xs text-ink-500">
             Goose Goose Duck, Gaggle Studios&apos;a aittir. Bu site resmi
             değildir.
           </p>

@@ -3,13 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  UserCircle,
-  SignOut,
-  Shield,
-  Gear,
-  FileText,
-} from "@phosphor-icons/react";
+import { UserCircle, SignOut, Gear, FileText } from "@phosphor-icons/react";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 
 interface UserMenuProps {
@@ -19,7 +13,7 @@ interface UserMenuProps {
   isAdmin: boolean;
 }
 
-export function UserMenu({ email, nickname, avatarUrl, isAdmin }: UserMenuProps) {
+export function UserMenu({ email, nickname, avatarUrl }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -69,14 +63,6 @@ export function UserMenu({ email, nickname, avatarUrl, isAdmin }: UserMenuProps)
               label="Şikayetlerim"
             />
             <MenuLink href="/profil/ayarlar" icon={Gear} label="Ayarlar" />
-            {isAdmin && (
-              <MenuLink
-                href="/admin"
-                icon={Shield}
-                label="Admin Paneli"
-                highlight
-              />
-            )}
           </nav>
           <div className="border-t border-ink-200/70">
             <SignOutButton className="w-full px-4 py-2.5 text-left text-sm font-medium text-danger-600 hover:bg-danger-50 transition-colors flex items-center gap-3">

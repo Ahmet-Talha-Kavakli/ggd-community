@@ -37,14 +37,8 @@ export const metadata: Metadata = {
     "topluluk",
     "GooseCage",
   ],
-  icons: {
-    icon: [
-      { url: "/logo-icon.png", type: "image/png", sizes: "1024x1024" },
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico" },
-    ],
-    apple: "/logo-icon.png",
-  },
+  // Favicon ve apple-icon icin Next.js file convention kullaniyoruz:
+  // src/app/icon.png + src/app/apple-icon.png otomatik HEAD'e eklenir.
   openGraph: {
     type: "website",
     locale: "tr_TR",

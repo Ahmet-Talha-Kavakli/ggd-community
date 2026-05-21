@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { List, X } from "@phosphor-icons/react";
+import { List, X, Shield } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/auth/user-menu";
 import { Logo } from "@/components/brand/logo";
@@ -65,6 +65,20 @@ export function SiteHeader({ user }: SiteHeaderProps) {
         </nav>
 
         <div className="hidden xl:flex items-center gap-2 shrink-0 justify-self-end">
+          {user?.isAdmin && (
+            <Link
+              href="/admin"
+              className={cn(
+                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-200 shadow-sm",
+                pathname.startsWith("/admin")
+                  ? "bg-brand-700 text-white"
+                  : "bg-brand-600 text-white hover:bg-brand-700",
+              )}
+            >
+              <Shield size={14} weight="bold" />
+              Admin
+            </Link>
+          )}
           {user ? (
             <UserMenu {...user} />
           ) : (
@@ -114,6 +128,21 @@ export function SiteHeader({ user }: SiteHeaderProps) {
                 </Link>
               );
             })}
+            {user?.isAdmin && (
+              <Link
+                href="/admin"
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "px-3 py-2.5 text-sm rounded-lg flex items-center gap-2 font-medium",
+                  pathname.startsWith("/admin")
+                    ? "bg-brand-700 text-white"
+                    : "bg-brand-600 text-white",
+                )}
+              >
+                <Shield size={16} weight="bold" />
+                Admin Paneli
+              </Link>
+            )}
             <div className="mt-3 pt-3 border-t border-ink-200/60">
               {user ? (
                 <div className="flex items-center justify-between px-3">
