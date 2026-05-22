@@ -133,49 +133,6 @@ export default async function HomePage() {
   return (
     <>
       <section className="hero-wash relative overflow-hidden">
-        {/* Floating background cards — dekoratif, opacity hafif */}
-        <div
-          aria-hidden
-          className="hidden md:block pointer-events-none absolute inset-0 z-0"
-        >
-          <FloatingCard
-            position="top-[10%] left-[6%]"
-            rotation="rotate-[-7deg]"
-            icon={ShieldCheck}
-            title="HENZAH"
-            sub="Banlı · kalıcı"
-            tone="danger"
-            delay="0s"
-          />
-          <FloatingCard
-            position="top-[18%] right-[14%]"
-            rotation="rotate-6"
-            icon={Warning}
-            title="Leopar"
-            sub="2 aktif uyarı"
-            tone="warning"
-            delay="0.6s"
-          />
-          <FloatingCard
-            position="bottom-[18%] left-[10%]"
-            rotation="rotate-[-4deg]"
-            icon={Users}
-            title="Carnage"
-            sub="Kayıtlı üye"
-            tone="brand"
-            delay="1.2s"
-          />
-          <FloatingCard
-            position="bottom-[10%] right-[8%]"
-            rotation="rotate-[8deg]"
-            icon={ChatsCircle}
-            title="Yeni şikayet"
-            sub="3 kanıt foto"
-            tone="info"
-            delay="1.8s"
-          />
-        </div>
-
         <div className="container-page py-16 md:py-24 lg:py-28 relative z-10">
           <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:items-center">
             <div className="flex flex-col gap-7">
@@ -221,6 +178,47 @@ export default async function HomePage() {
                   preload="metadata"
                   aria-label="GooseCage topluluğunun maskotu"
                   className="w-full h-auto block"
+                />
+              </div>
+
+              {/* Floating dekoratif kartlar — video'nun etrafinda, sol icerik
+                  alanina girmez. Sadece lg ve uzeri ekranda. */}
+              <div aria-hidden className="pointer-events-none">
+                <FloatingCard
+                  position="top-[-8%] left-[-12%]"
+                  rotation="rotate-[-8deg]"
+                  icon={ShieldCheck}
+                  title="HENZAH"
+                  sub="Banlı · kalıcı"
+                  tone="danger"
+                  delay="0s"
+                />
+                <FloatingCard
+                  position="top-[15%] right-[-18%]"
+                  rotation="rotate-6"
+                  icon={Warning}
+                  title="Leopar"
+                  sub="2 aktif uyarı"
+                  tone="warning"
+                  delay="0.6s"
+                />
+                <FloatingCard
+                  position="bottom-[-6%] left-[-15%]"
+                  rotation="rotate-[-4deg]"
+                  icon={Users}
+                  title="Carnage"
+                  sub="Kayıtlı üye"
+                  tone="brand"
+                  delay="1.2s"
+                />
+                <FloatingCard
+                  position="bottom-[14%] right-[-20%]"
+                  rotation="rotate-[8deg]"
+                  icon={ChatsCircle}
+                  title="Yeni şikayet"
+                  sub="3 kanıt foto"
+                  tone="info"
+                  delay="1.8s"
                 />
               </div>
             </div>
