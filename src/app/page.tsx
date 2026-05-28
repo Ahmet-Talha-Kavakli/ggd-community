@@ -92,28 +92,56 @@ const FEATURES: {
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const [roomRes, recentMembersRes, memberCountRes, announcementsRes] =
-    await Promise.all([
-      supabase.from("room_code").select("*").eq("id", 1).single(),
-      supabase
-        .from("profiles")
-        .select("id, nickname, joined_at")
-        .order("joined_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .gte(
-          "joined_at",
-          new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        ),
-      supabase
-        .from("announcements")
-        .select("id, title, body, tag, pinned, published_at")
-        .order("pinned", { ascending: false })
-        .order("published_at", { ascending: false })
-        .limit(3),
-    ]);
+  const [
+    roomRes,
+    recentMembersRes,
+    memberCountRes,
+    announcementsRes,
+    latestBanRes,
+    latestWarningRes,
+    latestReportRes,
+  ] = await Promise.all([
+    supabase.from("room_code").select("*").eq("id", 1).single(),
+    supabase
+      .from("profiles")
+      .select("id, nickname, joined_at")
+      .order("joined_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .gte(
+        "joined_at",
+        new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      ),
+    supabase
+      .from("announcements")
+      .select("id, title, body, tag, pinned, published_at")
+      .order("pinned", { ascending: false })
+      .order("published_at", { ascending: false })
+      .limit(3),
+    // Floating card data — son ban / uyari / sikayet
+    supabase
+      .from("bans")
+      .select("target_nickname, duration, created_at")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("warnings")
+      .select("target_nickname, severity, created_at")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("reports")
+      .select("id, category, created_at")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   const room = roomRes.data as RoomCode | null;
   const roomCode = room?.code?.trim() || "";
@@ -129,6 +157,24 @@ export default async function HomePage() {
     Announcement,
     "id" | "title" | "body" | "tag" | "pinned" | "published_at"
   >[];
+
+  // Floating cards icin son aktiviteler (varsa)
+  const latestBan = latestBanRes.data as {
+    target_nickname: string;
+    duration: string;
+    created_at: string;
+  } | null;
+  const latestWarning = latestWarningRes.data as {
+    target_nickname: string;
+    severity: string;
+    created_at: string;
+  } | null;
+  const latestReport = latestReportRes.data as {
+    id: number;
+    category: string;
+    created_at: string;
+  } | null;
+  const latestMember = recentMembers[0] ?? null;
 
   return (
     <>
@@ -181,45 +227,60 @@ export default async function HomePage() {
                 />
               </div>
 
-              {/* Floating dekoratif kartlar — video'nun etrafinda, sol icerik
+              {/* Floating dekoratif kartlar — gercek son aktivite verisinden
+                  beslenir. Video'nun etrafinda dans eder, sol icerik
                   alanina girmez. Sadece lg ve uzeri ekranda. */}
               <div aria-hidden className="pointer-events-none">
-                <FloatingCard
-                  position="top-[-8%] left-[-12%]"
-                  rotation="rotate-[-8deg]"
-                  icon={ShieldCheck}
-                  title="HENZAH"
-                  sub="Banlı · kalıcı"
-                  tone="danger"
-                  delay="0s"
-                />
-                <FloatingCard
-                  position="top-[15%] right-[-18%]"
-                  rotation="rotate-6"
-                  icon={Warning}
-                  title="Leopar"
-                  sub="2 aktif uyarı"
-                  tone="warning"
-                  delay="0.6s"
-                />
-                <FloatingCard
-                  position="bottom-[-6%] left-[-15%]"
-                  rotation="rotate-[-4deg]"
-                  icon={Users}
-                  title="Carnage"
-                  sub="Kayıtlı üye"
-                  tone="brand"
-                  delay="1.2s"
-                />
-                <FloatingCard
-                  position="bottom-[14%] right-[-20%]"
-                  rotation="rotate-[8deg]"
-                  icon={ChatsCircle}
-                  title="Yeni şikayet"
-                  sub="3 kanıt foto"
-                  tone="info"
-                  delay="1.8s"
-                />
+                {latestBan && (
+                  <FloatingCard
+                    position="top-[-8%] left-[-12%]"
+                    rotation="rotate-[-8deg]"
+                    icon={ShieldCheck}
+                    title={latestBan.target_nickname}
+                    sub={`Banlı · ${latestBan.duration === "permanent" ? "kalıcı" : latestBan.duration}`}
+                    tone="danger"
+                    delay="0s"
+                  />
+                )}
+                {latestWarning && (
+                  <FloatingCard
+                    position="top-[15%] right-[-18%]"
+                    rotation="rotate-6"
+                    icon={Warning}
+                    title={latestWarning.target_nickname}
+                    sub={
+                      latestWarning.severity === "high"
+                        ? "Ağır uyarı"
+                        : latestWarning.severity === "medium"
+                          ? "Orta uyarı"
+                          : "Hafif uyarı"
+                    }
+                    tone="warning"
+                    delay="0.6s"
+                  />
+                )}
+                {latestMember && (
+                  <FloatingCard
+                    position="bottom-[-6%] left-[-15%]"
+                    rotation="rotate-[-4deg]"
+                    icon={Users}
+                    title={latestMember.nickname}
+                    sub="Yeni üye"
+                    tone="brand"
+                    delay="1.2s"
+                  />
+                )}
+                {latestReport && (
+                  <FloatingCard
+                    position="bottom-[14%] right-[-20%]"
+                    rotation="rotate-[8deg]"
+                    icon={ChatsCircle}
+                    title="Yeni şikayet"
+                    sub={`#${latestReport.id} · inceleniyor`}
+                    tone="info"
+                    delay="1.8s"
+                  />
+                )}
               </div>
             </div>
           </div>

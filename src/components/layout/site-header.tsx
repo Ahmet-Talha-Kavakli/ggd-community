@@ -12,6 +12,7 @@ import {
 } from "@/components/notifications/notification-bell";
 import { Logo } from "@/components/brand/logo";
 import { SearchDock } from "@/components/layout/search-dock";
+import { OnlineCounter } from "@/components/layout/online-counter";
 import { cn } from "@/lib/utils";
 
 type NavLink = {
@@ -140,6 +141,8 @@ export function SiteHeader({
               </span>
             </Link>
           )}
+
+          <OnlineCounter />
 
           <nav className="hidden lg:flex items-center gap-1">
             {NAV.map((item) => {
